@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from .. import models, schemas, database
+from models import Material 
+import models, schemas, database
+from schemas import MaterialCreate, MaterialResponse # etc...
+from database import get_db
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/materiales", tags=["Materiales"])

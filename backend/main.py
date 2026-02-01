@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import engine, Base
-from .routers import materiales
-from .routers import materiales, obras  
+from database import engine, Base
+from routers import materiales, obras  
 
 # Crea las tablas en la BD automáticamente al iniciar
 Base.metadata.create_all(bind=engine)

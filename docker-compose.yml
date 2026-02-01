@@ -1,0 +1,10 @@
+services:
+  api:
+    build: ./backend  # Construye lo que está en la carpeta backend
+    container_name: mhg_backend
+    ports:
+      - "8000:8000"   # Conecta puerto 8000 de tu PC al 8000 del contenedor
+    volumes:
+      - ./backend:/app # ¡Truco! Sincroniza tu código en vivo (Hot Reload)
+    # Comando explícito para habilitar reload mientras programas
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
