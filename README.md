@@ -20,7 +20,7 @@ Este proyecto está contenerizado para facilitar su despliegue en cualquier ento
 
 1.  **Clonar el repositorio:**
     ```bash
-    git clone <tu-repo-url>
+    git clone <https://github.com/DHZ1LL10/MHG_inventory.git>
     cd mhg-inventario
     ```
 
