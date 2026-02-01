@@ -73,3 +73,81 @@ async function eliminarMaterial(id) {
 
 // Cargar al inicio
 cargarMateriales();
+
+async function cargarObras() {
+    try {
+        const response = await fetch(`${API_URL}/obras/`);
+        const obras = await response.json();
+        
+        const contenedor = document.getElementById('listaObras');
+        contenedor.innerHTML = ''; // Limpiar
+
+        obras.forEach(obra => {
+            // Creamos una "tarjeta" simple para cada obra
+            const card = `
+                <div style="background: #333; padding: 10px; border-radius: 5px; font-size: 0.9em;">
+                    <strong style="color: #2196F3;">${obra.nombre}</strong><br>
+                    <small>${obra.cliente}</small>
+                </div>
+            `;
+            contenedor.innerHTML += card;
+        });
+    } catch (error) {
+        console.error("Error cargando obras:", error);
+    }
+}
+
+// Evento para crear nueva Obra
+document.getElementById('obraForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nuevaObra = {
+        nombre: document.getElementById('obraNombre').value,
+        cliente: document.getElementById('obraCliente').value,
+        direccion: document.getElementById('obraDireccion').value,
+        presupuesto: 0 // Por ahora en 0
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/obras/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nuevaObra)
+        });
+
+        if (response.ok) {
+            alert("Obra creada con éxito");
+            document.getElementById('obraForm').reset();
+            cargarObras(); // Recargar la lista visual
+        } else {
+            alert("Error al crear obra");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+    }
+});
+
+// Inicializar Obras también al cargar la página
+cargarObras();
+
+async function llenarSelectorObras() {
+    const selector = document.getElementById('ubicacion');
+    // Guardamos la opción "Bodega Central" para no borrarla
+    selector.innerHTML = '<option value="Bodega Central">🏠 Bodega Central</option>';
+
+    try {
+        const response = await fetch(`${API_URL}/obras/`);
+        const obras = await response.json();
+
+        obras.forEach(obra => {
+            const option = document.createElement('option');
+            option.value = obra.nombre; // El valor que se guardará en BD
+            option.textContent = `📍 ${obra.nombre}`; // Lo que ve el usuario
+            selector.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Error cargando selector:", error);
+    }
+}
+
+llenarSelectorObras();
