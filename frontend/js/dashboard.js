@@ -1,5 +1,107 @@
 const API_URL = "http://127.0.0.1:8000";
 
+function filtrarTabla() {
+    const texto = document.getElementById('buscador').value.toLowerCase();
+    const filas = document.querySelectorAll('#tablaMateriales tr');
+
+    filas.forEach(fila => {
+        const material = fila.cells[1].textContent.toLowerCase(); // Columna Nombre
+        const categoria = fila.cells[2].textContent.toLowerCase(); // Columna Categoria
+        
+        // Si el texto coincide con nombre O categoría, se muestra. Si no, se oculta.
+        if (material.includes(texto) || categoria.includes(texto)) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+}
+
+// 2. Modificamos cargarMateriales para incluir la "Edición Rápida"
+async function cargarMateriales() {
+    try {
+        const response = await fetch(`${API_URL}/materiales/`);
+        let materiales = await response.json();
+        
+        const filtro = document.getElementById('filtroUbicacion').value;
+        if (filtro !== "Todos") {
+            materiales = materiales.filter(mat => mat.ubicacion === filtro);
+        }
+
+        const tbody = document.getElementById('tablaMateriales');
+        tbody.innerHTML = ''; 
+
+        if (materiales.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: #666;">No hay materiales</td></tr>';
+            return;
+        }
+
+        materiales.forEach(mat => {
+            const badgeClass = mat.ubicacion === 'Bodega Central' ? 'badge-gray' : 'badge-blue';
+            const icon = mat.ubicacion === 'Bodega Central' ? '🏠' : '📍';
+
+            const row = `
+                <tr>
+                    <td style="color: #666;">#${mat.id}</td>
+                    <td><strong style="color: white;">${mat.nombre}</strong></td>
+                    <td>${mat.categoria}</td>
+                    <td><span class="badge ${badgeClass}">${icon} ${mat.ubicacion}</span></td>
+                    
+                    <td>
+                        <div class="stock-control">
+                            <button class="btn-mini btn-minus" onclick="cambiarStock(${mat.id}, ${mat.cantidad}, -1)">−</button>
+                            
+                            <span class="stock-number" 
+                                  onclick="editarStockManual(${mat.id}, ${mat.cantidad})" 
+                                  title="Click para editar cantidad manualmente"
+                                  style="cursor: pointer; border-bottom: 1px dashed #666;">
+                                ${mat.cantidad}
+                            </span>
+                            
+                            <button class="btn-mini btn-plus" onclick="cambiarStock(${mat.id}, ${mat.cantidad}, 1)">+</button>
+                            <span style="font-size: 0.8em; color: #888; margin-left: 5px;">${mat.unidad}</span>
+                        </div>
+                    </td>
+                    
+                    <td style="text-align: right;">
+                        <span class="btn-delete" onclick="eliminarMaterial(${mat.id})" title="Eliminar">🗑️</span>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+        
+        // Re-aplicar filtro de búsqueda si había algo escrito
+        filtrarTabla();
+
+    } catch (error) { console.error("Error:", error); }
+}
+
+// 3. NUEVA FUNCIÓN: Edición Manual de Stock (El "Turbo")
+async function editarStockManual(id, cantidadActual) {
+    // Usamos un prompt nativo del navegador para rapidez
+    const nuevaCantidadStr = prompt(`Ingresa el nuevo stock total para este material:`, cantidadActual);
+    
+    // Si el usuario cancela o no escribe nada, no hacemos nada
+    if (nuevaCantidadStr === null || nuevaCantidadStr === "") return;
+
+    const nuevaCantidad = parseInt(nuevaCantidadStr);
+
+    if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
+        alert("Por favor ingresa un número válido (positivo).");
+        return;
+    }
+
+    // Usamos el endpoint que ya teníamos para actualizar
+    await fetch(`${API_URL}/materiales/${id}/stock`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cantidad: nuevaCantidad })
+    });
+
+    cargarMateriales();
+}
+
 // ==========================================
 // 1. GESTIÓN DE OBRAS
 // ==========================================

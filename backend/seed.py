@@ -1,14 +1,8 @@
-import sys
-import os
-
-# Truco para que Python encuentre la carpeta 'backend' correctamente
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from backend.database import SessionLocal, engine, Base
-from backend.models import Material, Obra
+from database import SessionLocal, engine, Base
+from models import Material, Obra
 from sqlalchemy.orm import Session
 
-# Reiniciamos la base de datos
+# Reiniciamos la base de datos para empezar limpio
 print("🔄 Reiniciando base de datos...")
 Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
