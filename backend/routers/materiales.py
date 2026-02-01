@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from .. import models, schemas, database
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/materiales", tags=["Materiales"])
 
@@ -29,3 +30,17 @@ def eliminar_material(material_id: int, db: Session = Depends(database.get_db)):
     db.delete(material)
     db.commit()
     return {"mensaje": "Material eliminado"}
+class StockUpdate(BaseModel):
+    cantidad: int
+
+# PUT /materiales/{id}/stock
+@router.put("/{material_id}/stock", response_model=schemas.MaterialResponse)
+def actualizar_stock(material_id: int, stock: StockUpdate, db: Session = Depends(database.get_db)):
+    material = db.query(models.Material).filter(models.Material.id == material_id).first()
+    if not material:
+        raise HTTPException(status_code=404, detail="Material no encontrado")
+    
+    material.cantidad = stock.cantidad
+    db.commit()
+    db.refresh(material)
+    return material

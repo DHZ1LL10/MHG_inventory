@@ -1,37 +1,59 @@
-const API_URL = "http://127.0.0.1:8000"; // Tu servidor FastAPI
+const API_URL = "http://127.0.0.1:8000";
 
+// ==========================================
+// 1. GESTIÓN DE OBRAS
+// ==========================================
 async function cargarObras() {
     try {
         const response = await fetch(`${API_URL}/obras/`);
         const obras = await response.json();
         
+        // 1.1 Llenar la lista visual de tarjetas
         const contenedor = document.getElementById('listaObras');
-        contenedor.innerHTML = ''; // Limpiar
+        contenedor.innerHTML = ''; 
+
+        // 1.2 Llenar los selectores (Formulario y Filtro)
+        const selectorForm = document.getElementById('ubicacion');
+        const selectorFiltro = document.getElementById('filtroUbicacion');
+        
+        // Guardamos selección actual del filtro
+        const filtroActual = selectorFiltro.value;
+
+        // Resetear selectores
+        selectorForm.innerHTML = '<option value="Bodega Central">🏠 Bodega Central</option>';
+        selectorFiltro.innerHTML = '<option value="Todos">🏗️ Ver Todo el Inventario</option><option value="Bodega Central">🏠 Solo Bodega Central</option>';
 
         obras.forEach(obra => {
-            // Creamos una "tarjeta" simple para cada obra
+            // Tarjeta visual
             const card = `
-                <div style="background: #333; padding: 10px; border-radius: 5px; font-size: 0.9em;">
-                    <strong style="color: #2196F3;">${obra.nombre}</strong><br>
-                    <small>${obra.cliente}</small>
+                <div style="background: #2C2C2C; padding: 10px 15px; border-radius: 4px; border: 1px solid #333; min-width: 150px;">
+                    <div style="color: #2196F3; font-weight: bold; font-size: 0.9em;">${obra.nombre}</div>
+                    <div style="color: #888; font-size: 0.8em;">${obra.cliente}</div>
                 </div>
             `;
             contenedor.innerHTML += card;
+
+            // Opción en Selectores
+            const optionHTML = `<option value="${obra.nombre}">📍 ${obra.nombre}</option>`;
+            selectorForm.insertAdjacentHTML('beforeend', optionHTML);
+            selectorFiltro.insertAdjacentHTML('beforeend', optionHTML);
         });
+
+        // Restaurar filtro
+        selectorFiltro.value = filtroActual;
+
     } catch (error) {
         console.error("Error cargando obras:", error);
     }
 }
 
-// Evento para crear nueva Obra
 document.getElementById('obraForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
     const nuevaObra = {
         nombre: document.getElementById('obraNombre').value,
         cliente: document.getElementById('obraCliente').value,
         direccion: document.getElementById('obraDireccion').value,
-        presupuesto: 0 // Por ahora en 0
+        presupuesto: 0
     };
 
     try {
@@ -42,98 +64,110 @@ document.getElementById('obraForm').addEventListener('submit', async (e) => {
         });
 
         if (response.ok) {
-            alert("Obra creada con éxito");
             document.getElementById('obraForm').reset();
-            cargarObras(); // Recargar la lista visual
+            cargarObras(); // Recarga visual y selectores
         } else {
             alert("Error al crear obra");
         }
-    } catch (error) {
-        console.error("Error:", error);
-    }
+    } catch (error) { console.error(error); }
 });
 
-cargarObras();
-
-// 1. Llenamos AMBOS selectores (el del formulario y el del filtro)
-async function llenarSelectorObras() {
-    const selectorForm = document.getElementById('ubicacion');
-    const selectorFiltro = document.getElementById('filtroUbicacion');
-    
-    // Limpiamos y ponemos los defaults
-    selectorForm.innerHTML = '<option value="Bodega Central">🏠 Bodega Central</option>';
-    
-    // En el filtro guardamos lo que haya seleccionado el usuario actualmente para no resetearlo de golpe
-    const filtroActual = selectorFiltro.value;
-    selectorFiltro.innerHTML = '<option value="Todos">🏗️ Ver Todo</option><option value="Bodega Central">🏠 Bodega Central</option>';
-
-    try {
-        const response = await fetch(`${API_URL}/obras/`);
-        const obras = await response.json();
-
-        obras.forEach(obra => {
-            // Opción para el Formulario (Crear)
-            const option1 = document.createElement('option');
-            option1.value = obra.nombre;
-            option1.textContent = `📍 ${obra.nombre}`;
-            selectorForm.appendChild(option1);
-
-            // Opción para el Filtro (Ver)
-            const option2 = document.createElement('option');
-            option2.value = obra.nombre;
-            option2.textContent = `📍 ${obra.nombre}`;
-            selectorFiltro.appendChild(option2);
-        });
-
-        // Restaurar selección del filtro si existía
-        selectorFiltro.value = filtroActual;
-
-    } catch (error) {
-        console.error("Error cargando selectores:", error);
-    }
-}
-
-// 2. Cargamos materiales aplicando el filtro
+// ==========================================
+// 2. GESTIÓN DE MATERIALES
+// ==========================================
 async function cargarMateriales() {
     try {
         const response = await fetch(`${API_URL}/materiales/`);
         let materiales = await response.json();
         
-        // --- LÓGICA DE FILTRADO NUEVA ---
+        // Filtrado
         const filtro = document.getElementById('filtroUbicacion').value;
         if (filtro !== "Todos") {
             materiales = materiales.filter(mat => mat.ubicacion === filtro);
         }
-        // --------------------------------
 
         const tbody = document.getElementById('tablaMateriales');
         tbody.innerHTML = ''; 
 
         if (materiales.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: #888;">No hay materiales en esta ubicación</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px; color: #666;">No hay materiales en esta ubicación</td></tr>';
             return;
         }
 
         materiales.forEach(mat => {
+            // Estilo dinámico para ubicación
+            const badgeClass = mat.ubicacion === 'Bodega Central' ? 'badge-gray' : 'badge-blue';
+            const icon = mat.ubicacion === 'Bodega Central' ? '🏠' : '📍';
+
             const row = `
                 <tr>
-                    <td>#${mat.id}</td>
-                    <td><strong>${mat.nombre}</strong></td>
+                    <td style="color: #666;">#${mat.id}</td>
+                    <td><strong style="color: white;">${mat.nombre}</strong></td>
                     <td>${mat.categoria}</td>
                     <td>
-                        <span style="background: ${mat.ubicacion === 'Bodega Central' ? '#444' : '#2196F3'}; padding: 2px 6px; border-radius: 4px; font-size: 0.85em;">
-                            ${mat.ubicacion}
-                        </span>
+                        <span class="badge ${badgeClass}">${icon} ${mat.ubicacion}</span>
                     </td>
-                    <td>${mat.cantidad} ${mat.unidad}</td>
                     <td>
-                        <span class="delete-btn" onclick="eliminarMaterial(${mat.id})">🗑️</span>
+                        <div class="stock-control">
+                            <button class="btn-mini btn-minus" onclick="cambiarStock(${mat.id}, ${mat.cantidad}, -1)">−</button>
+                            <span class="stock-number">${mat.cantidad}</span>
+                            <button class="btn-mini btn-plus" onclick="cambiarStock(${mat.id}, ${mat.cantidad}, 1)">+</button>
+                            <span style="font-size: 0.8em; color: #888; margin-left: 5px;">${mat.unidad}</span>
+                        </div>
+                    </td>
+                    <td style="text-align: right;">
+                        <span class="btn-delete" onclick="eliminarMaterial(${mat.id})" title="Eliminar">🗑️</span>
                     </td>
                 </tr>
             `;
             tbody.innerHTML += row;
         });
     } catch (error) {
-        console.error("Error cargando materiales:", error);
+        console.error("Error:", error);
     }
 }
+
+// Crear Material
+document.getElementById('materialForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nuevoMaterial = {
+        nombre: document.getElementById('nombre').value,
+        categoria: document.getElementById('categoria').value,
+        unidad: document.getElementById('unidad').value,
+        cantidad: parseInt(document.getElementById('cantidad').value),
+        ubicacion: document.getElementById('ubicacion').value
+    };
+
+    await fetch(`${API_URL}/materiales/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nuevoMaterial)
+    });
+    
+    document.getElementById('materialForm').reset();
+    cargarMateriales();
+});
+
+// Actualizar Stock (Lógica Backend)
+async function cambiarStock(id, cantidadActual, cambio) {
+    const nuevaCantidad = cantidadActual + cambio;
+    if (nuevaCantidad < 0) return; // Evitar negativos
+
+    await fetch(`${API_URL}/materiales/${id}/stock`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cantidad: nuevaCantidad })
+    });
+    cargarMateriales(); // Recarga solo la tabla
+}
+
+// Eliminar
+async function eliminarMaterial(id) {
+    if(!confirm("¿Eliminar este material?")) return;
+    await fetch(`${API_URL}/materiales/${id}`, { method: 'DELETE' });
+    cargarMateriales();
+}
+
+// Inicialización
+cargarObras();      // Primero obras para llenar los selectores
+cargarMateriales(); // Luego la tabla

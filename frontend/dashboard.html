@@ -1,149 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHG - Dashboard Inventario</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>MHG - Sistema de Gestión</title>
     <style>
-        /* Un poco de CSS extra solo para que la tabla no se vea fea */
+        :root {
+            --bg-body: #121212;
+            --bg-card: #1E1E1E;
+            --text-main: #E0E0E0;
+            --text-muted: #A0A0A0;
+            --accent: #ffffff; /* Azul Arquitectura */
+            --danger: #CF6679;
+            --success: #00C853;
+            --border: #333333;
+        }
+
         body {
-            background-color: #121212;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif; /* Tipografía más limpia */
+            margin: 0;
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* Header */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        h1 { font-weight: 300; letter-spacing: 1px; margin: 0; }
+        h1 span { font-weight: 600; color: var(--accent); }
+        .logout { color: var(--text-muted); text-decoration: none; transition: color 0.3s; }
+        .logout:hover { color: white; }
+
+        /* Tarjetas / Paneles */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .card-title { margin-top: 0; margin-bottom: 20px; font-size: 1.1em; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+        /* Inputs y Formularios */
+        form { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+        
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.85em; color: var(--text-muted); }
+
+        input, select {
+            background: #2C2C2C;
+            border: 1px solid var(--border);
             color: white;
-            font-family: sans-serif;
-            padding: 20px;
+            padding: 10px 12px;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.3s;
+            min-width: 140px;
         }
+        input:focus, select:focus { border-color: var(--accent); }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* Tabla */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background: #1e1e1e;
-        }
-
-        th,
-        td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
-
-        th {
-            background-color: #333;
-            color: #fff;
-        }
-
-        tr:hover {
-            background-color: #2c2c2c;
-        }
-
-        /* Formulario */
-        .form-panel {
-            background: #1e1e1e;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 8px;
-        }
-
-        input,
-        select {
-            padding: 10px;
-            background: #333;
-            border: 1px solid #444;
-            color: white;
-            margin-right: 10px;
-        }
-
-        button {
-            padding: 10px 20px;
-            background: white;
-            color: black;
+        /* Botones Generales */
+        .btn-primary {
+            background-color: var(--accent);
+            color: rgb(0, 0, 0);
             border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+            height: 38px; /* Para alinear con inputs */
         }
+        .btn-primary:hover { background-color: #7d7d7d; }
 
-        button:hover {
-            background: #ddd;
-        }
+        /* Tabla Profesional */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 12px 15px; color: var(--text-muted); border-bottom: 1px solid var(--border); font-weight: 600; font-size: 0.9em; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
+        tr:hover { background-color: #252525; }
 
-        .delete-btn {
-            color: #ff6b6b;
-            cursor: pointer;
-            font-weight: bold;
+        /* Badges y Utilerias */
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+        .badge-gray { background: #333; color: #ccc; }
+        .badge-blue { background: rgba(33, 150, 243, 0.2); color: var(--accent); border: 1px solid rgba(33, 150, 243, 0.3); }
+
+        /* Botones de Acción (Tabla) */
+        .stock-control { display: flex; align-items: center; gap: 8px; }
+        .btn-mini {
+            width: 28px; height: 28px;
+            border-radius: 4px; border: none;
+            cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.1s;
         }
+        .btn-mini:active { transform: scale(0.95); }
+        .btn-minus { background: #333; color: #ff6b6b; border: 1px solid #444; }
+        .btn-plus { background: #333; color: #4CAF50; border: 1px solid #444; }
+        .btn-minus:hover { background: #ff6b6b; color: white; }
+        .btn-plus:hover { background: #4CAF50; color: white; }
+        
+        .stock-number { font-weight: bold; font-size: 1.1em; width: 30px; text-align: center; }
+        
+        .btn-delete { color: var(--text-muted); cursor: pointer; font-size: 1.2em; transition: color 0.2s; }
+        .btn-delete:hover { color: var(--danger); }
+
+        /* Filtros */
+        .filter-bar { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; background: #1a1a1a; padding: 10px; border-radius: 4px; border: 1px solid var(--border); width: fit-content; }
     </style>
 </head>
-
 <body>
 
-    <div class="container">
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
-            <h1>MHG Arquitectos / <span style="color: #888;">Inventario</span></h1>
-            <a href="index.html" style="color: white; text-decoration: none;">Cerrar Sesión</a>
-        </header>
+<div class="container">
+    <header>
+        <h1>MHG <span>ARQUITECTOS</span></h1>
+        <a href="#" class="logout">Cerrar Sesión</a>
+    </header>
 
-        <div class="form-panel">
-            <h3>+ Nuevo Material</h3>
+    <div class="card" style="border-left: 4px solid var(--accent);">
+        <h3 class="card-title">📍 Proyectos Activos</h3>
+        <form id="obraForm">
+            <div class="input-group">
+                <input type="text" id="obraNombre" placeholder="Nombre del Proyecto" required>
+            </div>
+            <div class="input-group">
+                <input type="text" id="obraCliente" placeholder="Cliente" required>
+            </div>
+            <div class="input-group">
+                <input type="text" id="obraDireccion" placeholder="Dirección / Ubicación" required>
+            </div>
+            <button type="submit" class="btn-primary">Crear Proyecto</button>
+        </form>
+        <div id="listaObras" style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;"></div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: top;">
+            <h3 class="card-title">📦 Inventario de Materiales</h3>
+        </div>
+
+        <div style="background: #222; padding: 15px; border-radius: 6px; margin-bottom: 25px;">
             <form id="materialForm">
-                <input type="text" id="nombre" placeholder="Nombre (ej. Cemento)" required>
+                <input type="text" id="nombre" placeholder="Material (ej. Cemento)" required>
                 <input type="text" id="categoria" placeholder="Categoría (ej. Obra Negra)" required>
-                <input type="text" id="unidad" placeholder="Unidad (ej. Bulto)" style="width: 100px;" required>
-                <input type="number" id="cantidad" placeholder="Cantidad" style="width: 100px;" required>
-                <select id="ubicacion"
-                    style="width: 160px; padding: 10px; background: #333; color: white; border: 1px solid #444; margin-right: 10px;">
+                <input type="text" id="unidad" placeholder="Unidad" style="width: 80px;" required>
+                <input type="number" id="cantidad" placeholder="Cant." style="width: 80px;" required>
+                <select id="ubicacion">
                     <option value="Bodega Central">Bodega Central</option>
-                </select> <button type="submit">Guardar Material</button>
+                </select>
+                <button type="submit" class="btn-primary" style="background-color: #444;">+ Agregar</button>
             </form>
         </div>
 
-        <h3>Existencias en Tiempo Real</h3>
-        <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-            <span>Filtrar por ubicación:</span>
-            <select id="filtroUbicacion" onchange="cargarMateriales()"
-                style="padding: 8px; background: #333; color: white; border: 1px solid #444; border-radius: 4px;">
-                <option value="Todos">Ver Todo</option>
-                <option value="Bodega Central">Bodega Central</option>
+        <div class="filter-bar">
+            <span style="color: var(--text-muted); font-size: 0.9em;">VISUALIZACIÓN:</span>
+            <select id="filtroUbicacion" onchange="cargarMateriales()" style="border: none; background: transparent; color: white; font-weight: bold; cursor: pointer;">
+                <option value="Todos">Ver Todo el Inventario</option>
+                <option value="Bodega Central">Solo Bodega Central</option>
             </select>
         </div>
+
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th style="width: 50px;">ID</th>
                     <th>Material</th>
                     <th>Categoría</th>
-                    <th>Ubicación</th>
-                    <th>Stock</th>
-                    <th>Acciones</th>
+                    <th>Ubicación Actual</th>
+                    <th>Existencias</th>
+                    <th style="text-align: right;">Acciones</th>
                 </tr>
             </thead>
             <tbody id="tablaMateriales">
-            </tbody>
+                </tbody>
         </table>
     </div>
+</div>
 
-    <div class="form-panel" style="border-left: 4px solid #2196F3;">
-        <h3>📍 Gestión de Obras / Proyectos</h3>
-        <form id="obraForm">
-            <input type="text" id="obraNombre" placeholder="Nombre Obra (ej. Torre Reforma)" required>
-            <input type="text" id="obraCliente" placeholder="Cliente" required>
-            <input type="text" id="obraDireccion" placeholder="Dirección" required>
-            <button type="submit" style="background-color: #2196F3; color: white;">Crear Obra</button>
-        </form>
-
-        <div id="listaObras" style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-        </div>
-    </div>
-    <hr style="border-color: #333; margin: 30px 0;">
-
-    <script src="js/dashboard.js"></script>
+<script src="js/dashboard.js"></script>
 </body>
-
 </html>
