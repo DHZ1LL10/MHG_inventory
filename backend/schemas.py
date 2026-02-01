@@ -14,3 +14,14 @@ class MaterialResponse(MaterialCreate):
 
     class Config:
         from_attributes = True # Antes 'orm_mode'
+
+class ObraCreate(BaseModel):
+    nombre: str
+    cliente: str
+    direccion: str
+    presupuesto: int
+
+class ObraResponse(ObraCreate):
+    id: int
+    class Config:
+        from_attributes = True
