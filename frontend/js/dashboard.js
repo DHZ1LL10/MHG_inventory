@@ -249,7 +249,7 @@ async function cargarMateriales() {
         materialesVisibles.forEach(mat => {
             const isBodega = mat.ubicacion === 'Bodega Central';
             const badgeClass = isBodega ? 'badge-gray' : 'badge-active';
-            const icon = isBodega ? '🏠' : '📍';
+            const icon = isBodega ? '' : '📍';
             const stockColor = mat.cantidad < 10 ? '#FF6B6B' : 'white';
 
             const row = `
@@ -314,7 +314,7 @@ async function cargarObras() {
         const filtroVal = selectorFiltro.value;
 
         // Limpiar opciones dinámicas (mantener las fijas)
-        selectorForm.innerHTML = '<option value="Bodega Central">🏠 Bodega Central</option>';
+        selectorForm.innerHTML = '<option value="Bodega Central"> Bodega Central</option>';
         while (selectorFiltro.options.length > 2) { selectorFiltro.remove(2); }
 
         obras.forEach(obra => {
