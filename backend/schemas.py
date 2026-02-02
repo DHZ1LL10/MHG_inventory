@@ -1,27 +1,62 @@
 from pydantic import BaseModel
+from typing import Optional, List
+from datetime import datetime
 
-# Esquema para crear un material (lo que recibes)
-class MaterialCreate(BaseModel):
+# --- Materiales ---
+class MaterialBase(BaseModel):
     nombre: str
     categoria: str
     unidad: str
     cantidad: int
     ubicacion: str
 
-# Esquema para leer un material (lo que respondes)
-class MaterialResponse(MaterialCreate):
+class MaterialCreate(MaterialBase):
+    pass
+
+class Material(MaterialBase):
     id: int
-
     class Config:
-        from_attributes = True # Antes 'orm_mode'
+        from_attributes = True
 
-class ObraCreate(BaseModel):
+# --- Obras ---
+class ObraBase(BaseModel):
     nombre: str
     cliente: str
     direccion: str
-    presupuesto: int
 
-class ObraResponse(ObraCreate):
+class ObraCreate(ObraBase):
+    pass
+
+class Obra(ObraBase):
     id: int
+    activa: int
+    class Config:
+        from_attributes = True
+
+# --- Movimientos (NUEVO) ---
+class MovimientoCreate(BaseModel):
+    material_id: int
+    cantidad: int
+    tipo: str # ENTRADA o SALIDA
+    motivo: str # Nombre de la Obra o Razón
+    usuario: str # Nombre del dispositivo
+
+class Movimiento(MovimientoCreate):
+    id: int
+    fecha: datetime
+    class Config:
+        from_attributes = True
+
+# --- Auth Dispositivos (NUEVO) ---
+class LoginRequest(BaseModel):
+    codigo: str
+
+class DispositivoCreate(BaseModel):
+    nombre: str
+    rol: str
+
+class Dispositivo(DispositivoCreate):
+    id: int
+    codigo_acceso: str
     class Config:
         from_attributes = True

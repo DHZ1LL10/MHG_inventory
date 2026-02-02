@@ -1,538 +1,432 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "http://192.168.0.49:8000"; 
+
+// Intentamos leer el usuario guardado (simulando login) o usamos uno por defecto según la IP/Dispositivo
+let usuarioActual = localStorage.getItem("usuarioNombre") || "Tablet Bodega"; 
+
+let idMaterialSeleccionado = null;
+let nombreMaterialSeleccionado = "";
+let idEnEdicion = null; 
+let panelActivo = null; 
+let cacheMateriales = []; // IMPORTANTE: Aquí guardaremos la lista para traducir IDs a Nombres
 
 // ==========================================
-// 1. BASE DE DATOS DE OPCIONES (CATÁLOGO PRO)
+// 1. DATA: CATÁLOGO MAESTRO
 // ==========================================
 const CATALOGO = {
-    unidades: [
-        { grupo: "🌟 Más Usados", opciones: ["Pieza", "Bulto", "m²", "m³", "Juego", "Caja"] },
-        { grupo: "📏 Longitud", opciones: ["Metro (m)", "Centímetro (cm)", "Metro Lineal (ml)", "Rollo", "Tramo"] },
-        { grupo: "⬛ Área / Superficie", opciones: ["Metro Cuadrado (m²)", "Hectárea", "Lámina", "Placa"] },
-        { grupo: "🧊 Volumen / Líquidos", opciones: ["Metro Cúbico (m³)", "Litro (L)", "Cubeta (19L)", "Galón", "Tambor (200L)", "Pipa", "Saco"] },
-        { grupo: "⚖️ Peso", opciones: ["Kilogramo (kg)", "Tonelada (ton)", "Gramo (g)", "Libra (lb)"] },
-        { grupo: "📦 Contenedores", opciones: ["Paquete", "Tarima", "Atado", "Camión", "Viaje"] }
-    ],
     categorias: [
-        { grupo: "🌟 Frecuentes", opciones: ["Obra Negra", "Acabados", "Eléctrico", "Hidrosanitario"] },
-        { grupo: "🏗️ Estructura", opciones: ["Aceros", "Concretos", "Cimentación", "Muros", "Techumbres"] },
-        { grupo: "🎨 Acabados", opciones: ["Pisos y Recubrimientos", "Pinturas", "Carpintería", "Cancelería", "Vidrios", "Impermeabilización"] },
-        { grupo: "💡 Instalaciones", opciones: ["Iluminación", "Cableado", "Tuberías", "Gas", "Voz y Datos", "Aire Acondicionado"] },
-        { grupo: "🚽 Baños y Cocina", opciones: ["Grifería", "Muebles de Baño", "Tarjas", "Accesorios"] },
-        { grupo: "🛠️ Otros", opciones: ["Herramienta Menor", "Equipo de Seguridad (EPP)", "Limpieza", "Papelería/Oficina"] }
+        { grupo: "🏗️ Obra Negra", opciones: ["Cemento", "Arena", "Grava", "Varilla", "Ladrillo", "Block", "Yeso", "Cal", "Malla Electrosoldada"] },
+        { grupo: "🎨 Acabados", opciones: ["Pintura Vinílica", "Esmalte", "Pasta Texturizada", "Azulejo", "Piso Cerámico", "Zoclo", "Impermeabilizante"] },
+        { grupo: "🪵 Carpintería", opciones: ["Madera Pino", "Triplay 16mm", "Triplay 6mm", "Barniz", "Clavos", "Pegamento Blanco", "Bisagras"] },
+        { grupo: "⚡ Eléctrico", opciones: ["Cable Calibre 12", "Cable Calibre 10", "Apagadores", "Contactos", "Focos LED", "Tubería Conduit"] },
+        { grupo: "💧 Plomería", opciones: ["Tubo PVC", "Tubo Cobre", "Codos", "Tees", "Llaves de Paso", "Cinta Teflón", "Tinacos"] },
+        { grupo: "🛠️ EPP y Consumibles", opciones: ["Discos de Corte", "Brocas", "Guantes", "Cascos", "Chalecos", "Mascarillas", "Estopa"] }
+    ],
+    unidades: [
+        { grupo: "📦 Contenedores", opciones: ["Bulto", "Caja", "Paquete", "Cubeta", "Tambor"] },
+        { grupo: "📏 Medida", opciones: ["Pieza", "Juego", "Metro (m)", "Metro Cuadrado (m²)"] },
+        { grupo: "⚖️ Peso/Volumen", opciones: ["Kilogramo (kg)", "Tonelada (ton)", "Litro (L)"] }
     ]
 };
 
-let inputActivo = null; // Para saber qué input estamos llenando
+// ==========================================
+// 2. LOGICA VISUAL (PANEL Y SPLIT VIEW)
+// ==========================================
+function activarPanel(tipo) {
+    const inputId = tipo === 'categoria' ? 'newCategoria' : 'newUnidad';
+    panelActivo = inputId; 
 
-// ==========================================
-// 2. SISTEMA DE NOTIFICACIONES (TOASTS)
-// ==========================================
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <span>${type === 'success' ? '✔' : '✖'}</span>
-        <span>${message}</span>
-    `;
-    container.appendChild(toast);
+    document.getElementById('newCategoria').style.borderColor = '#444';
+    document.getElementById('newUnidad').style.borderColor = '#444';
+    document.getElementById(inputId).style.borderColor = 'white';
+
+    const titulo = document.getElementById('panelTitle');
+    if(titulo) titulo.innerText = tipo === 'categoria' ? 'Seleccionar Categoría' : 'Seleccionar Unidad';
+    document.getElementById('panelSearch').value = '';
     
-    // Auto eliminar después de 3 segundos
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    const datos = tipo === 'categoria' ? CATALOGO.categorias : CATALOGO.unidades;
+    renderizarGrid(datos);
 }
 
-// ==========================================
-// 3. LÓGICA DEL SELECTOR INTELIGENTE (MODAL)
-// ==========================================
-function abrirSelector(tipo) {
-    inputActivo = tipo; // 'unidad' o 'categoria'
-    const modal = document.getElementById('selectorModal');
-    const titulo = document.getElementById('modalTitle');
-    const search = document.getElementById('modalSearch');
-
-    // Configurar Modal
-    modal.style.display = 'flex';
-    titulo.textContent = tipo === 'unidad' ? 'Seleccionar Unidad' : 'Seleccionar Categoría';
-    search.value = '';
-    search.focus();
-
-    // Renderizar Opciones iniciales
-    renderizarOpciones(tipo);
-}
-
-function renderizarOpciones(tipo, filtroText = '') {
-    const grid = document.getElementById('modalGrid');
-    grid.innerHTML = '';
+function renderizarGrid(datos, filtro = "") {
+    const grid = document.getElementById('panelGrid');
+    if(!grid) return;
+    grid.innerHTML = "";
     
-    const datos = CATALOGO[tipo === 'unidad' ? 'unidades' : 'categorias'];
-    let hayResultados = false;
-
+    let encontrados = false;
     datos.forEach(grupo => {
-        // Filtrar opciones dentro del grupo
-        const opcionesFiltradas = grupo.opciones.filter(op => 
-            op.toLowerCase().includes(filtroText.toLowerCase())
-        );
-
+        const opcionesFiltradas = grupo.opciones.filter(op => op.toLowerCase().includes(filtro.toLowerCase()));
         if (opcionesFiltradas.length > 0) {
-            hayResultados = true;
-            
-            // Crear Título del Grupo
-            const groupTitle = document.createElement('div');
-            groupTitle.className = 'option-group-title';
-            groupTitle.textContent = grupo.grupo;
-            grid.appendChild(groupTitle);
+            encontrados = true;
+            const titulo = document.createElement('div');
+            titulo.className = 'option-group-title';
+            titulo.innerText = grupo.grupo;
+            grid.appendChild(titulo);
 
-            // Crear Grid de Botones
-            const groupGrid = document.createElement('div');
-            groupGrid.className = 'option-grid';
-            
+            const divGrid = document.createElement('div');
+            divGrid.className = 'option-grid';
             opcionesFiltradas.forEach(opcion => {
-                const btn = document.createElement('div');
-                btn.className = 'option-btn';
-                // Resaltar los grupos populares
-                if (grupo.grupo.includes("Más") || grupo.grupo.includes("Frecuentes")) {
-                    btn.classList.add('featured'); 
-                }
-                btn.textContent = opcion;
-                btn.onclick = () => seleccionarOpcion(opcion);
-                groupGrid.appendChild(btn);
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                card.innerText = opcion;
+                card.onclick = () => seleccionarOpcion(opcion);
+                divGrid.appendChild(card);
             });
-            grid.appendChild(groupGrid);
+            grid.appendChild(divGrid);
         }
     });
-
-    if (!hayResultados) {
-        grid.innerHTML = `
-            <div style="text-align:center; color:#666; padding:20px;">
-                No encontrado. <br> 
-                <button class="btn-primary" onclick="seleccionarOpcion('${filtroText}')" style="margin-top:10px; width:auto; display:inline-block;">
-                    Usar "${filtroText}"
-                </button>
-            </div>`;
-    }
+    if (!encontrados) grid.innerHTML = `<div style="text-align:center; padding:20px; color:#666;">Sin resultados.</div>`;
 }
 
-function filtrarOpcionesModal() {
-    const texto = document.getElementById('modalSearch').value;
-    renderizarOpciones(inputActivo, texto);
+function filtrarPanel() {
+    const texto = document.getElementById('panelSearch').value;
+    const tipo = panelActivo === 'newCategoria' ? 'categorias' : 'unidades';
+    if(tipo) renderizarGrid(CATALOGO[tipo], texto);
 }
 
 function seleccionarOpcion(valor) {
-    if (!valor) return;
-    document.getElementById(inputActivo).value = valor;
-    cerrarSelector();
-}
-
-function cerrarSelector(e) {
-    if (e && e.target.id !== 'selectorModal' && !e.target.classList.contains('close-modal')) return;
-    document.getElementById('selectorModal').style.display = 'none';
-}
-
-// ==========================================
-// 4. LÓGICA DE NEGOCIO Y KPIs
-// ==========================================
-
-function actualizarKPIs(obras, materiales) {
-    // 1. Obras Activas
-    document.getElementById('kpiObras').textContent = obras.length;
-
-    // 2. Total Materiales
-    const totalStock = materiales.reduce((acc, curr) => acc + curr.cantidad, 0);
-    document.getElementById('kpiMateriales').textContent = totalStock;
-
-    // 3. Alertas (Stock < 10)
-    const lowStockItems = materiales.filter(m => m.cantidad < 10);
-    const alertaCount = lowStockItems.length;
-    document.getElementById('kpiAlertas').textContent = alertaCount;
-
-    // Mostrar/Ocultar Sección de Alertas
-    const section = document.getElementById('alertaSection');
-    if (alertaCount > 0) {
-        section.style.display = 'block';
-        section.innerHTML = `
-            <div class="alert-box">
-                <div class="alert-title">
-                    ⚠️ Stock Crítico: ${alertaCount} materiales por agotarse
-                </div>
-                <span style="color: #ddd; font-size: 0.9em; cursor: pointer; text-decoration: underline;" onclick="filtrarPorBajoStock()">
-                    Ver lista
-                </span>
-            </div>
-        `;
-    } else {
-        section.style.display = 'none';
+    if(!panelActivo) return;
+    document.getElementById(panelActivo).value = valor;
+    if(panelActivo === 'newCategoria') activarPanel('unidad');
+    else {
+        document.getElementById('newCantidad').focus();
+        document.getElementById('newUnidad').style.borderColor = '#444';
     }
 }
 
-function filtrarPorBajoStock() {
-    // Resetear filtro visual y buscar manualmente en la tabla
-    document.getElementById('buscador').value = "";
-    const filas = document.querySelectorAll('#tablaMateriales tr');
-    
-    filas.forEach(fila => {
-        const stockElement = fila.querySelector('.text-stock');
-        if (stockElement) {
-            const stock = parseInt(stockElement.innerText);
-            if (stock < 10) {
-                fila.style.display = '';
-                fila.style.background = 'rgba(207, 102, 121, 0.1)';
-            } else {
-                fila.style.display = 'none';
-            }
-        }
-    });
-    showToast("Filtrando materiales críticos", "error");
-}
-
 // ==========================================
-// 5. CARGA DE DATOS Y CRUD
+// 3. CARGA DE DATOS E INVENTARIO
 // ==========================================
-
-function filtrarTabla() {
-    const texto = document.getElementById('buscador').value.toLowerCase();
-    const filas = document.querySelectorAll('#tablaMateriales tr');
-
-    filas.forEach(fila => {
-        if (fila.classList.contains('empty-row')) return;
-        
-        // Buscamos en Nombre y Categoría
-        const contenido = fila.innerText.toLowerCase();
-        
-        if (contenido.includes(texto)) {
-            fila.style.display = '';
-        } else {
-            fila.style.display = 'none';
-        }
-    });
-}
-
 async function cargarMateriales() {
     try {
         const response = await fetch(`${API_URL}/materiales/`);
         let materiales = await response.json();
         
-        // Memoria del filtro (Igual que antes)
-        const selectorFiltro = document.getElementById('filtroUbicacion');
-        const filtroGuardado = localStorage.getItem('ultimoFiltro');
-        if (filtroGuardado && selectorFiltro.value === 'Todos' && !window.filtroAplicado) {
-            selectorFiltro.value = filtroGuardado;
-            window.filtroAplicado = true;
-        }
-        const filtroActual = selectorFiltro.value;
-        localStorage.setItem('ultimoFiltro', filtroActual);
+        cacheMateriales = materiales; // GUARDAMOS EN CACHE PARA USAR NOMBRES LUEGO
 
+        const filtroUbicacion = document.getElementById('filtroUbicacion').value;
+        const buscador = document.getElementById('buscador').value.toLowerCase();
+        
         let materialesVisibles = materiales;
-        if (filtroActual !== "Todos") {
-            materialesVisibles = materiales.filter(mat => mat.ubicacion === filtroActual);
-        }
+        if (filtroUbicacion !== "Todos") materialesVisibles = materiales.filter(mat => mat.ubicacion === filtroUbicacion);
+        if (buscador) materialesVisibles = materialesVisibles.filter(mat => mat.nombre.toLowerCase().includes(buscador));
 
         const tbody = document.getElementById('tablaMateriales');
         tbody.innerHTML = ''; 
+        
+        actualizarKPIs(materiales);
+        cargarMovimientos(); // Cargamos la bitácora humana
 
         if (materialesVisibles.length === 0) {
-            tbody.innerHTML = `
-                <tr class="empty-row">
-                    <td colspan="5">
-                        <div class="empty-state">
-                            <div class="empty-icon">📦</div>
-                            <h3>Sin materiales aquí</h3>
-                            <p>Esta ubicación está limpia. Agrega material arriba.</p>
-                        </div>
-                    </td>
-                </tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 40px; color: #666;">📦 No hay materiales aquí.</td></tr>`;
             return;
         }
 
         materialesVisibles.forEach(mat => {
-            const isBodega = mat.ubicacion === 'Bodega Central';
-            const badgeClass = isBodega ? 'badge-gray' : 'badge-active';
-            const icon = isBodega ? '' : '📍';
-            const stockColor = mat.cantidad < 10 ? '#FF6B6B' : 'white';
+            let stockColor = 'white';
+            if(mat.cantidad < 5) stockColor = '#FF6B6B';
+            else if(mat.cantidad < 20) stockColor = '#FFC107';
 
             const row = `
                 <tr>
-                    <td class="text-id">#${mat.id}</td>
                     <td>
-                        <span class="text-main">${mat.nombre}</span>
-                        <span class="text-sub">${mat.categoria} • ${mat.unidad}</span>
+                        <span class="text-main" style="font-weight:600; color:white; font-size: 1.1em;">${mat.nombre}</span>
+                        <span class="text-sub" style="font-size:0.85em; color:#888;">${mat.categoria} • ${mat.unidad}</span>
                     </td>
-                    <td>
-                        <span class="badge ${badgeClass}">
-                            ${icon} ${mat.ubicacion}
-                        </span>
+                    <td style="color:#aaa;">
+                        <span class="badge ${mat.ubicacion === 'Taller' ? 'badge-active' : 'badge-gray'}">${mat.ubicacion}</span>
                     </td>
                     <td style="text-align: center;">
-                        <div class="stock-control" style="justify-content: center;">
-                            <button class="btn-mini btn-minus" onclick="cambiarStock(${mat.id}, -1, event)">−</button>
-                            
-                            <span class="text-stock" 
-                                  id="stock-qty-${mat.id}"
-                                  onclick="editarStockManual(${mat.id})" 
-                                  title="Clic para editar manual"
-                                  style="color: ${stockColor}">
-                                ${mat.cantidad}
-                            </span>
-                            
-                            <button class="btn-mini btn-plus" onclick="cambiarStock(${mat.id}, 1, event)">+</button>
+                        <div class="stock-control">
+                            <button class="btn-circle btn-minus" onclick="abrirSalida(${mat.id}, '${mat.nombre}')"> − </button>
+                            <span class="stock-val" id="stock-qty-${mat.id}" onclick="editarStockManual(${mat.id})" style="color: ${stockColor};">${mat.cantidad}</span>
+                            <button class="btn-circle btn-plus" onclick="entradaRapida(${mat.id}, 1)"> + </button>
                         </div>
                     </td>
-                    <td style="text-align: right;">
-                        <span class="btn-delete" onclick="eliminarMaterial(${mat.id})">🗑️</span>
-                    </td>
-                </tr>
-            `;
+                </tr>`;
             tbody.innerHTML += row;
         });
-        
-        filtrarTabla();
-
     } catch (error) { console.error("Error:", error); }
 }
 
-async function cargarObras() {
+function filtrarTabla() { cargarMateriales(); }
+
+// ==========================================
+// 4. BITÁCORA HUMANIZADA (NUEVO)
+// ==========================================
+async function cargarMovimientos() {
+    const tbody = document.getElementById('tablaMovimientos');
+    if(!tbody) return;
+
     try {
-        const response = await fetch(`${API_URL}/obras/`);
-        const obras = await response.json();
+        const response = await fetch(`${API_URL}/movimientos/?limit=8`); // Traemos los últimos 8
+        const movimientos = await response.json();
         
-        // Actualizar KPIs (Fetch global de materiales para tener datos reales)
-        const matResponse = await fetch(`${API_URL}/materiales/`);
-        const todosMateriales = await matResponse.json();
-        actualizarKPIs(obras, todosMateriales);
-
-        // Llenar Lista de Proyectos
-        const contenedor = document.getElementById('listaObras');
-        contenedor.innerHTML = ''; 
-
-        const selectorForm = document.getElementById('ubicacion');
-        const selectorFiltro = document.getElementById('filtroUbicacion');
-        
-        // Guardar valores actuales
-        const formVal = selectorForm.value;
-        const filtroVal = selectorFiltro.value;
-
-        // Limpiar opciones dinámicas (mantener las fijas)
-        selectorForm.innerHTML = '<option value="Bodega Central"> Bodega Central</option>';
-        while (selectorFiltro.options.length > 2) { selectorFiltro.remove(2); }
-
-        obras.forEach(obra => {
-            // Tarjeta
-            const card = `
-                <div style="background: #2C2C2C; padding: 12px 18px; border-radius: 6px; border: 1px solid #333; min-width: 160px; display: flex; flex-direction: column;">
-                    <span style="color: var(--accent); font-weight: 700;">${obra.nombre}</span>
-                    <span style="color: #888; font-size: 0.85em;">👤 ${obra.cliente}</span>
-                </div>
-            `;
-            contenedor.innerHTML += card;
-
-            // Selectores
-            const optionHTML = `<option value="${obra.nombre}">📍 ${obra.nombre}</option>`;
-            selectorForm.insertAdjacentHTML('beforeend', optionHTML);
-            selectorFiltro.insertAdjacentHTML('beforeend', optionHTML);
-        });
-
-        // Restaurar selección
-        selectorForm.value = formVal;
-        selectorFiltro.value = filtroVal;
-
-    } catch (error) { console.error("Error cargando obras:", error); }
-}
-
-// --- CREAR OBRA ---
-document.getElementById('obraForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const nuevaObra = {
-        nombre: document.getElementById('obraNombre').value,
-        cliente: document.getElementById('obraCliente').value,
-        direccion: document.getElementById('obraDireccion').value,
-        presupuesto: 0
-    };
-
-    await fetch(`${API_URL}/obras/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevaObra)
-    });
-    
-    document.getElementById('obraForm').reset();
-    showToast(`Proyecto "${nuevaObra.nombre}" creado`);
-    cargarObras();
-});
-
-// --- CREAR MATERIAL ---
-document.getElementById('materialForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const nuevoMaterial = {
-        nombre: document.getElementById('nombre').value,
-        categoria: document.getElementById('categoria').value,
-        unidad: document.getElementById('unidad').value,
-        cantidad: parseInt(document.getElementById('cantidad').value),
-        ubicacion: document.getElementById('ubicacion').value
-    };
-
-    await fetch(`${API_URL}/materiales/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevoMaterial)
-    });
-    
-    document.getElementById('materialForm').reset();
-    showToast("Material registrado exitosamente");
-    cargarMateriales();
-    cargarObras(); // Refresh KPIs
-});
-
-// --- ACTUALIZAR STOCK ---
-// --- ACTUALIZAR STOCK (OPTIMISTA E INSTANTÁNEO) ---
-async function cambiarStock(id, direccion, event) {
-    // 1. Detectar si presionó Shift (Multiplicador x10)
-    let multiplicador = 1;
-    if (event && event.shiftKey) {
-        multiplicador = 10;
-    }
-    
-    const cambio = direccion * multiplicador;
-
-    // 2. Obtener el elemento HTML del número
-    const stockElement = document.getElementById(`stock-qty-${id}`);
-    if (!stockElement) return; // Seguridad
-
-    // 3. Leer valor actual del HTML
-    const cantidadActual = parseInt(stockElement.innerText);
-    const nuevaCantidad = cantidadActual + cambio;
-
-    // 4. Validar negativos
-    if (nuevaCantidad < 0) {
-        showToast("No hay suficiente stock", "error");
-        return;
-    }
-
-    // 5. ACTUALIZACIÓN VISUAL INSTANTÁNEA (Sin esperar al servidor)
-    stockElement.innerText = nuevaCantidad;
-    
-    // Animación visual de cambio (Flash)
-    stockElement.style.color = cambio > 0 ? '#00C853' : '#FF6B6B'; // Verde o Rojo momentáneo
-    setTimeout(() => {
-        // Regresar al color original (o rojo si es bajo stock)
-        stockElement.style.color = nuevaCantidad < 10 ? '#FF6B6B' : 'white';
-    }, 300);
-
-    // Actualizar KPI de Materiales localmente (truco visual)
-    const kpiMat = document.getElementById('kpiMateriales');
-    kpiMat.innerText = parseInt(kpiMat.innerText) + cambio;
-
-
-    // 6. ENVIAR AL SERVIDOR (En segundo plano)
-    try {
-        const response = await fetch(`${API_URL}/materiales/${id}/stock`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cantidad: nuevaCantidad })
-        });
-
-        if (!response.ok) {
-            throw new Error("Error en servidor");
+        tbody.innerHTML = '';
+        if (movimientos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#555;">La bitácora está vacía hoy.</td></tr>';
+            return;
         }
-        // Si todo sale bien, no hacemos nada más, ya actualizamos la UI.
-        
-    } catch (error) {
-        // 7. SI FALLA: REVERTIMOS EL CAMBIO (Rollback)
-        stockElement.innerText = cantidadActual; // Volver al anterior
-        kpiMat.innerText = parseInt(kpiMat.innerText) - cambio;
-        showToast("Error de conexión. Cambio deshecho.", "error");
-    }
-}
-// --- EDICIÓN TURBO ---
-let idEnEdicion = null; // Variable para recordar qué material estamos editando
 
-// 1. ABRIR EL MODAL BONITO
-function editarStockManual(id) {
-    idEnEdicion = id; // Guardamos el ID
-    const stockElement = document.getElementById(`stock-qty-${id}`);
-    const cantidadActual = parseInt(stockElement.innerText);
-    
-    const modal = document.getElementById('stockModal');
-    const input = document.getElementById('stockInputModal');
-    
-    modal.style.display = 'flex'; // Mostrar modal
-    input.value = cantidadActual; // Poner valor actual
-    input.select(); // Seleccionar texto para escribir encima rápido
-    input.focus();
-}
+        movimientos.forEach(mov => {
+            // 1. Hora amigable
+            const fechaObj = new Date(mov.fecha);
+            const hora = fechaObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // 2. Buscar Nombre del Material (Usando cache)
+            const matEncontrado = cacheMateriales.find(m => m.id === mov.material_id);
+            const nombreMaterial = matEncontrado ? matEncontrado.nombre : `Producto #${mov.material_id}`;
+            const unidadMaterial = matEncontrado ? matEncontrado.unidad : 'unidades';
 
-// 2. GUARDAR EL CAMBIO
-async function guardarStockModal() {
-    const input = document.getElementById('stockInputModal');
-    const nuevaCantidadStr = input.value;
-    const modal = document.getElementById('stockModal');
+            // 3. Icono y Rol del Usuario
+            let iconoUser = "👤";
+            let usuario = mov.usuario || "Desconocido";
+            if(usuario.toLowerCase().includes("taller")) iconoUser = "👷‍♂️";
+            if(usuario.toLowerCase().includes("bodega")) iconoUser = "🏠";
+            if(usuario.toLowerCase().includes("admin")) iconoUser = "🛡️";
 
-    if (nuevaCantidadStr === "") return;
+            // 4. Frase Humana de Acción
+            let accionHtml = "";
+            let colorTexto = "";
+            
+            if (mov.tipo === "ENTRADA") {
+                accionHtml = `<span style="color:#00C853">📥 Recibió <b>${mov.cantidad} ${unidadMaterial}</b></span> de ${nombreMaterial}`;
+            } else {
+                accionHtml = `<span style="color:#CF6679">📤 Sacó <b>${mov.cantidad} ${unidadMaterial}</b></span> de ${nombreMaterial}`;
+            }
 
-    const nuevaCantidad = parseInt(nuevaCantidadStr);
-    if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
-        showToast("Cantidad inválida", "error");
-        return;
-    }
+            // 5. Destino con Icono
+            let destinoHtml = mov.motivo;
+            if(mov.motivo.includes("Obra:")) {
+                destinoHtml = `<span style="color:#64B5F6">🏗️ ${mov.motivo.replace("Obra: ", "")}</span>`;
+            } else if (mov.motivo.includes("Venta")) {
+                destinoHtml = `<span style="color:#FFD54F">💰 ${mov.motivo}</span>`;
+            } else {
+                destinoHtml = `<span style="color:#aaa">🔧 ${mov.motivo}</span>`;
+            }
 
-    // Cerrar modal
-    modal.style.display = 'none';
-
-    // --- AQUI VA LA LÓGICA DE ACTUALIZACIÓN (IGUAL QUE ANTES) ---
-    
-    // Actualizar UI primero (Optimista)
-    const stockElement = document.getElementById(`stock-qty-${idEnEdicion}`);
-    const cantidadAnterior = parseInt(stockElement.innerText);
-    
-    stockElement.innerText = nuevaCantidad;
-    stockElement.style.color = nuevaCantidad < 10 ? '#FF6B6B' : 'white';
-
-    // Actualizar KPI visualmente
-    const kpiMat = document.getElementById('kpiMateriales');
-    const diferencia = nuevaCantidad - cantidadAnterior;
-    kpiMat.innerText = parseInt(kpiMat.innerText) + diferencia;
-
-    // Enviar al Backend
-    try {
-        await fetch(`${API_URL}/materiales/${idEnEdicion}/stock`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cantidad: nuevaCantidad })
+            const row = `
+                <tr style="border-bottom: 1px solid #2a2a2a;">
+                    <td style="padding:12px 10px; color:#888;">${hora}</td>
+                    <td style="padding:12px 10px; font-weight:bold; color:white;">${iconoUser} ${usuario}</td>
+                    <td style="padding:12px 10px; color:#ddd;">${accionHtml}</td>
+                    <td style="padding:12px 10px;">${destinoHtml}</td>
+                </tr>`;
+            tbody.innerHTML += row;
         });
-        showToast("Inventario ajustado");
-        cargarObras(); // Para asegurar consistencia en BD
-    } catch (error) {
-        // Revertir si falla
-        stockElement.innerText = cantidadAnterior;
-        showToast("Error de conexión", "error");
-    }
+    } catch(e) { console.log("Error cargando bitácora", e); }
 }
 
-// 3. CERRAR MODAL
-function cerrarStockModal() {
-    document.getElementById('stockModal').style.display = 'none';
-    idEnEdicion = null;
-}
-
-// 4. DETECTAR ENTER (Para que sea rápido)
-function verificarEnterStock(event) {
-    if (event.key === 'Enter') {
-        guardarStockModal();
-    }
-    if (event.key === 'Escape') {
-        cerrarStockModal();
-    }
-}// --- ELIMINAR ---
-async function eliminarMaterial(id) {
-    if(!confirm("¿Estás seguro de eliminar este material?")) return;
+// ==========================================
+// 5. LÓGICA DE SALIDAS (BOTONES INTELIGENTES)
+// ==========================================
+async function abrirSalida(id, nombre) {
+    idMaterialSeleccionado = id;
+    nombreMaterialSeleccionado = nombre;
     
-    await fetch(`${API_URL}/materiales/${id}`, { method: 'DELETE' });
-    showToast("Material eliminado", "error");
-    cargarMateriales();
-    cargarObras();
+    // Resetear UI
+    document.getElementById('salidaNombre').textContent = nombre;
+    document.getElementById('salidaCantidad').value = "";
+    
+    // Limpiar botones de selección
+    document.querySelectorAll('.btn-option').forEach(btn => {
+        btn.style.borderColor = "#444";
+        btn.style.backgroundColor = "#2A2A2A";
+    });
+    
+    // Ocultar inputs dinámicos
+    document.getElementById('inputDinamicoContainer').style.display = 'none';
+    document.getElementById('salidaMotivo').value = ""; // Reset hidden input
+
+    document.getElementById('salidaModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('salidaCantidad').focus(), 100);
 }
 
-// INICIALIZACIÓN
-cargarObras();      
-cargarMateriales();
+// Función auxiliar para seleccionar tipo de salida (botones grandes)
+async function seleccionarTipoSalida(tipo) {
+    // Estilos visuales
+    document.querySelectorAll('.btn-option').forEach(btn => {
+        btn.style.borderColor = "#444";
+        btn.style.backgroundColor = "#2A2A2A";
+    });
+    const btnActivo = document.getElementById(`btn${tipo}`);
+    if(btnActivo) {
+        btnActivo.style.borderColor = "white";
+        btnActivo.style.backgroundColor = "#444";
+    }
+
+    const container = document.getElementById('inputDinamicoContainer');
+    const label = document.getElementById('labelDinamico');
+    const selectObra = document.getElementById('selectObraDinamico');
+    const inputTexto = document.getElementById('inputTextoDinamico');
+    const hiddenMotivo = document.getElementById('salidaMotivo'); // Input oculto para guardar la selección final
+
+    container.style.display = 'block';
+    selectObra.style.display = 'none';
+    inputTexto.style.display = 'none';
+
+    hiddenMotivo.value = ""; // Resetear valor final
+
+    if (tipo === 'Obra') {
+        label.innerText = "¿Para cuál obra es?";
+        selectObra.style.display = 'block';
+        
+        // Cargar obras si está vacío
+        if (selectObra.options.length === 0) {
+            selectObra.innerHTML = '<option value="">Cargando obras...</option>';
+            try {
+                const res = await fetch(`${API_URL}/obras/`);
+                const obras = await res.json();
+                selectObra.innerHTML = '<option value="">Selecciona la obra...</option>';
+                obras.forEach(o => selectObra.innerHTML += `<option value="Obra: ${o.nombre}">${o.nombre}</option>`);
+            } catch(e) { selectObra.innerHTML = '<option>Error cargando obras</option>'; }
+        }
+    } else if (tipo === 'Venta') {
+        label.innerText = "Referencia / Cliente:";
+        inputTexto.style.display = 'block';
+        inputTexto.placeholder = "Ej. Sr. Juan Pérez - Nota 123";
+        inputTexto.focus();
+    } else if (tipo === 'Taller') {
+        label.innerText = "Detalle del uso:";
+        inputTexto.style.display = 'block';
+        inputTexto.placeholder = "Ej. Reparación de mueble";
+        inputTexto.value = "Uso Interno Taller"; // Valor por defecto
+    } else {
+        label.innerText = "Especifique motivo:";
+        inputTexto.style.display = 'block';
+        inputTexto.placeholder = "Ej. Merma, Regalo, etc.";
+        inputTexto.value = "";
+    }
+}
+
+async function confirmarSalida() {
+    const cantidad = parseInt(document.getElementById('salidaCantidad').value);
+    
+    // Construir el motivo final basado en lo que el usuario llenó
+    let motivoFinal = "";
+    const selectObra = document.getElementById('selectObraDinamico');
+    const inputTexto = document.getElementById('inputTextoDinamico');
+
+    if (selectObra.style.display !== 'none') {
+        motivoFinal = selectObra.value;
+    } else {
+        // Caso Venta, Taller, Otro
+        // Si es venta, agregamos el prefijo si no lo tiene
+        if(document.getElementById('btnVenta').style.backgroundColor === "rgb(68, 68, 68)") { // Check chapucero de estilo activo
+             motivoFinal = "Venta: " + inputTexto.value;
+        } else {
+             motivoFinal = inputTexto.value;
+        }
+    }
+
+    if (!cantidad || cantidad <= 0) return showToast("Falta la cantidad");
+    if (!motivoFinal || motivoFinal.length < 3) return showToast("Falta especificar el destino/motivo");
+
+    // UI Optimista
+    const stockElem = document.getElementById(`stock-qty-${idMaterialSeleccionado}`);
+    const actual = parseInt(stockElem.innerText);
+    stockElem.innerText = actual - cantidad; 
+
+    document.getElementById('salidaModal').style.display = 'none';
+
+    await fetch(`${API_URL}/movimientos/`, {
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            material_id: idMaterialSeleccionado, 
+            cantidad, 
+            tipo: "SALIDA", 
+            motivo: motivoFinal, 
+            usuario: usuarioActual 
+        })
+    });
+    
+    showToast(`Registrado: Sacaron ${cantidad}`);
+    setTimeout(() => cargarMateriales(), 500); 
+}
+
+// ==========================================
+// 6. EDICIÓN RÁPIDA (STOCK)
+// ==========================================
+function editarStockManual(id) {
+    idEnEdicion = id;
+    document.getElementById('stockInputModal').value = document.getElementById(`stock-qty-${id}`).innerText;
+    document.getElementById('stockModal').style.display = 'flex';
+    document.getElementById('stockInputModal').select();
+}
+
+async function guardarStockModal() {
+    const nuevo = parseInt(document.getElementById('stockInputModal').value);
+    if (isNaN(nuevo) || nuevo < 0) return;
+    
+    const stockElem = document.getElementById(`stock-qty-${idEnEdicion}`);
+    const diff = nuevo - parseInt(stockElem.innerText);
+    stockElem.innerText = nuevo; // Optimista
+    
+    document.getElementById('stockModal').style.display = 'none';
+
+    if(diff !== 0) {
+        const tipo = diff > 0 ? "ENTRADA" : "SALIDA";
+        await fetch(`${API_URL}/movimientos/`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                material_id: idEnEdicion, cantidad: Math.abs(diff), tipo, 
+                motivo: "Ajuste Físico (Inventario)", usuario: usuarioActual 
+            })
+        });
+        showToast("Inventario Ajustado");
+        setTimeout(() => cargarMateriales(), 500);
+    }
+}
+
+async function entradaRapida(id, cant) {
+    const el = document.getElementById(`stock-qty-${id}`);
+    el.innerText = parseInt(el.innerText) + cant;
+    el.style.color = "#00C853";
+    
+    await fetch(`${API_URL}/movimientos/`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ 
+            material_id: id, cantidad: cant, tipo: "ENTRADA", 
+            motivo: "Compra / Reabastecimiento", usuario: usuarioActual 
+        })
+    });
+    setTimeout(() => cargarMateriales(), 500);
+}
+
+// ==========================================
+// 7. UTILIDADES
+// ==========================================
+function actualizarKPIs(mat) {
+    document.getElementById('kpiMateriales').innerText = mat.reduce((a,m)=>a+m.cantidad,0);
+    document.getElementById('kpiAlertas').innerText = mat.filter(m=>m.cantidad<5).length;
+}
+function showToast(msg) {
+    const d = document.createElement('div'); d.className='toast'; d.innerText=msg;
+    document.getElementById('toast-container').appendChild(d);
+    setTimeout(()=>d.remove(), 3000);
+}
+function verificarEnterStock(e){ if(e.key==="Enter") guardarStockModal(); }
+
+// Guardar nuevo material
+const formMat = document.getElementById('materialForm');
+if(formMat) {
+    formMat.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            nombre: document.getElementById('newNombre').value,
+            categoria: document.getElementById('newCategoria').value,
+            unidad: document.getElementById('newUnidad').value,
+            cantidad: parseInt(document.getElementById('newCantidad').value),
+            ubicacion: document.getElementById('newUbicacion').value
+        };
+        await fetch(`${API_URL}/materiales/`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        document.getElementById('addModal').style.display = 'none';
+        document.getElementById('materialForm').reset();
+        cargarMateriales(); showToast("Material Agregado");
+    });
+}
+
+// INICIO
+window.onload = function() {
+    cargarMateriales();
+};
