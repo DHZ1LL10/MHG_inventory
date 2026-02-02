@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHG - Sistema de Gestión</title>
+    <title>MHG - Gestión Inteligente</title>
     <style>
         :root {
             --bg-body: #121212;
             --bg-card: #1E1E1E;
             --text-main: #E0E0E0;
-            --text-muted: #A0A0A0;
-            
-            /* CAMBIO CLAVE: Acento ahora es blanco */
-            --accent: #ffffff; 
-            
+            --text-muted: #757575; 
+            --accent: #ffffff; /* Blanco Puro */
+            --warning: #FFC107;
             --danger: #CF6679;
             --success: #00C853;
             --border: #333333;
+            --brand-blue: #ffffff;
         }
 
         body {
@@ -30,175 +29,351 @@
 
         .container { max-width: 1200px; margin: 0 auto; }
 
-        /* Header */
+        /* HEADER */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
         h1 { font-weight: 300; letter-spacing: 1px; margin: 0; }
-        h1 span { font-weight: 700; color: var(--accent); } /* Negrita extra para el blanco */
+        h1 span { font-weight: 700; color: var(--accent); }
         .logout { color: var(--text-muted); text-decoration: none; transition: color 0.3s; }
         .logout:hover { color: white; }
 
-        /* Tarjetas */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        /* KPIs (INDICADORES EJECUTIVOS) */
+        .kpi-container { display: flex; gap: 20px; margin-bottom: 30px; }
+        .kpi-card { 
+            flex: 1; background: var(--bg-card); border: 1px solid var(--border); 
+            padding: 20px; border-radius: 8px; display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-        
-        /* Títulos de tarjeta en Blanco y Mayúsculas */
-        .card-title { 
-            margin-top: 0; margin-bottom: 20px; font-size: 1.1em; 
-            color: var(--accent); 
-            text-transform: uppercase; letter-spacing: 2px; font-weight: 600; 
-        }
+        .kpi-icon { font-size: 2em; opacity: 0.8; }
+        .kpi-data h4 { margin: 0; color: var(--text-muted); font-size: 0.9em; text-transform: uppercase; font-weight: 600; }
+        .kpi-data span { font-size: 1.8em; font-weight: bold; color: white; }
 
-        /* Inputs */
-        form { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        /* ALERTAS (SECCIÓN NUEVA) */
+        #alertaSection { display: none; margin-bottom: 25px; animation: fadeIn 0.5s; }
+        .alert-box {
+            background: rgba(207, 102, 121, 0.15); border-left: 4px solid var(--danger);
+            padding: 15px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .alert-title { color: var(--danger); font-weight: bold; display: flex; align-items: center; gap: 10px; }
+
+        /* TARJETAS GENERALES */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 8px; padding: 25px; margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { margin: 0; font-size: 1.1em; color: var(--accent); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
+
+        /* FORMULARIOS HUMANOS */
+        form { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .input-group { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
+        label { font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
         
         input, select {
             background: #2C2C2C; border: 1px solid var(--border); color: white;
-            padding: 10px 12px; border-radius: 4px; outline: none;
-            transition: all 0.3s; min-width: 140px;
+            padding: 12px; border-radius: 6px; outline: none; transition: all 0.3s;
+            font-size: 0.95em;
         }
-        input:focus, select:focus { 
-            border-color: var(--accent); 
-            background: #333;
-        }
+        input:focus, select:focus { border-color: var(--accent); background: #333; }
         
-        /* Corrección para que el desplegable sea oscuro */
-        select option { background: #1E1E1E; color: white; padding: 10px; }
-
-        /* BOTONES (ESTILO NUEVO) */
+        /* BOTONES */
         .btn-primary {
-            background-color: var(--accent); /* Blanco */
-            color: #000000; /* Texto Negro */
-            border: 1px solid var(--accent);
-            padding: 10px 20px; border-radius: 4px; cursor: pointer;
-            font-weight: 700; height: 38px; letter-spacing: 0.5px;
-            transition: all 0.3s ease;
+            background-color: var(--accent); color: #000; border: none;
+            padding: 12px 24px; border-radius: 6px; cursor: pointer;
+            font-weight: 700; transition: all 0.2s; height: 44px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        
-        /* Hover: Se oscurece a gris, texto se mantiene o cambia según gusto */
-        .btn-primary:hover { 
-            background-color: #666666; /* Gris */
-            border-color: #666666;
-            color: #000000; /* Texto negro */
-        }
+        .btn-primary:hover { background-color: #ccc; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,255,255,0.1); }
 
-        /* Tabla */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; padding: 12px 15px; color: var(--text-muted); border-bottom: 1px solid var(--border); font-weight: 600; font-size: 0.9em; text-transform: uppercase; }
-        td { padding: 15px; border-bottom: 1px solid #2a2a2a; vertical-align: middle; }
-        tr:hover { background-color: #252525; }
-
-        /* Badges (Etiquetas de ubicación) */
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; border: 1px solid transparent; }
+        /* TABLA JERARQUICA */
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 10px; }
+        th { text-align: left; padding: 10px 15px; color: var(--text-muted); font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Gris para Bodega */
-        .badge-gray { background: #333; color: #ccc; border-color: #444; }
-        
-        /* Blanco/Transparente para Obras (Estilo Arquitecto) */
-        .badge-blue { 
-            background: transparent; 
-            color: #ffffff; 
-            border-color: #ffffff; 
-        }
+        tr { background: #252525; transition: transform 0.2s; }
+        tr:hover { transform: scale(1.01); background: #2A2A2A; }
+        td { padding: 15px; vertical-align: middle; border-top: 1px solid #333; border-bottom: 1px solid #333; }
+        td:first-child { border-left: 1px solid #333; border-radius: 6px 0 0 6px; }
+        td:last-child { border-right: 1px solid #333; border-radius: 0 6px 6px 0; }
 
-        /* Control de Stock */
-        .stock-control { display: flex; align-items: center; gap: 8px; }
+        /* JERARQUÍA VISUAL TEXTO */
+        .text-id { font-size: 0.8em; color: #444; font-family: monospace; }
+        .text-main { font-size: 1.1em; font-weight: 600; color: white; display: block; }
+        .text-sub { font-size: 0.9em; color: var(--text-muted); }
+        .text-stock { font-size: 1.4em; font-weight: 800; color: white; cursor: pointer; border-bottom: 1px dashed #555; }
+        .text-stock:hover { color: var(--brand-blue); border-color: var(--brand-blue); }
+
+        /* BADGES */
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .badge-gray { background: #333; color: #aaa; border: 1px solid #444; }
+        .badge-active { background: rgba(33, 150, 243, 0.15); color: var(--brand-blue); border: 1px solid rgba(33, 150, 243, 0.3); }
+
+        /* CONTROLES DE STOCK */
+        .stock-control { display: flex; align-items: center; gap: 10px; }
         .btn-mini {
-            width: 28px; height: 28px; border-radius: 4px; border: none; cursor: pointer;
-            font-weight: bold; display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s;
+            width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+            font-weight: bold; font-size: 1.2em; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; background: #333; color: #fff;
         }
-        .btn-minus { background: #333; color: #fff; border: 1px solid #555; }
-        .btn-plus { background: #fff; color: #000; border: 1px solid #fff; }
-        
-        .btn-minus:hover { background: #CF6679; border-color: #CF6679; color: black; }
-        .btn-plus:hover { background: #ccc; border-color: #ccc; }
+        .btn-mini:hover { background: #555; }
+        .btn-minus:hover { background: var(--danger); color: white; }
+        .btn-plus:hover { background: var(--success); color: white; }
 
-        .stock-number { font-weight: bold; font-size: 1.1em; width: 40px; text-align: center; color: white; }
-        .btn-delete { color: var(--text-muted); cursor: pointer; font-size: 1.2em; transition: color 0.3s; }
-        .btn-delete:hover { color: var(--accent); }
+        /* TOAST NOTIFICATION */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
+        .toast {
+            background: #333; color: white; padding: 12px 20px; border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px;
+            border-left: 4px solid var(--accent); animation: slideIn 0.3s; min-width: 250px;
+        }
+        .toast-success { border-color: var(--success); }
+        .toast-error { border-color: var(--danger); }
+
+        /* ESTADOS VACÍOS */
+        .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+        .empty-icon { font-size: 3em; margin-bottom: 15px; opacity: 0.3; }
+
+        /* --- ESTILOS DEL SELECTOR INTELIGENTE (MODAL) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); z-index: 2000;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px); animation: fadeIn 0.2s;
+        }
+
+        .modal-box {
+            background: #1E1E1E; width: 600px; max-height: 80vh;
+            border-radius: 12px; border: 1px solid #333;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            padding: 20px; border-bottom: 1px solid #333; background: #252525;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .modal-search {
+            background: #111; border: 1px solid #444; color: white;
+            padding: 12px; border-radius: 6px; width: 100%; margin-top: 10px;
+            font-size: 1em; outline: none;
+        }
+        .modal-search:focus { border-color: var(--brand-blue); }
+
+        .modal-content {
+            padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+        }
+
+        /* GRID DE OPCIONES DEL MODAL */
+        .option-group-title {
+            color: var(--brand-blue); font-size: 0.8em; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 10px; font-weight: 700;
+            border-bottom: 1px solid #333; padding-bottom: 5px;
+        }
+
+        .option-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;
+        }
+
+        .option-btn {
+            background: #2C2C2C; border: 1px solid #333; color: #ddd;
+            padding: 10px; border-radius: 6px; cursor: pointer; text-align: center;
+            transition: all 0.2s; font-size: 0.9em;
+        }
+
+        .option-btn:hover { background: #444; color: white; transform: translateY(-2px); border-color: #666; }
+        .option-btn.featured { border-color: var(--brand-blue); background: rgba(255, 255, 255, 0.1); }
+
+        .close-modal { cursor: pointer; font-size: 1.5em; color: #888; }
+        .close-modal:hover { color: white; }
+
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         
-        /* Barra de Filtros */
-        .filter-bar { background: #1a1a1a; padding: 10px; border-radius: 4px; border: 1px solid var(--border); }
+        .stock-input-hud {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #444; /* Línea sutil apagada */
+            color: white;
+            font-size: 3.5em; /* Gigante */
+            font-weight: 700;
+            text-align: center;
+            width: 100%;
+            padding: 10px 0;
+            outline: none;
+            font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s ease;
+            margin: 10px 0 25px 0;
+        }
+
+        .stock-input-hud:focus {
+            border-bottom-color: var(--accent); /* Se ilumina blanco al escribir */
+            transform: scale(1.05); /* Pequeño zoom elegante */
+        }
+
+        /* Contenedor de botones distribuido */
+        .modal-footer {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover {
+            color: white;
+            border-color: #666;
+            background: #252525;
+        }
     </style>
 </head>
 
 <body>
 
+    <div id="toast-container"></div>
+
     <div class="container">
         <header>
             <h1>MHG <span>ARQUITECTOS</span></h1>
-            <a href="index.html" class="logout">Cerrar Sesión</a>
+            <a href="index.html" class="logout">Salir</a>
         </header>
 
-        <div class="card" style="border-left: 4px solid var(--accent);">
-            <h3 class="card-title">📍 Proyectos Activos</h3>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-icon">🏗️</div>
+                <div class="kpi-data">
+                    <h4>Obras Activas</h4>
+                    <span id="kpiObras">0</span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon">📦</div>
+                <div class="kpi-data">
+                    <h4>Materiales en Stock</h4>
+                    <span id="kpiMateriales">0</span>
+                </div>
+            </div>
+            <div class="kpi-card" style="border-color: rgba(255, 193, 7, 0.3);">
+                <div class="kpi-icon">⚠️</div>
+                <div class="kpi-data">
+                    <h4>Atención Requerida</h4>
+                    <span id="kpiAlertas" style="color: var(--warning);">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertaSection">
+            <div class="alert-box">
+                <div class="alert-title">
+                    ⚠️ Stock Crítico Detectado
+                </div>
+                <span style="color: #ddd; font-size: 0.9em;">Tienes materiales a punto de agotarse. Revisa la lista abajo.</span>
+            </div>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--accent);">
+            <div class="card-header">
+                <h3 class="card-title">📍 Proyectos</h3>
+            </div>
+            
             <form id="obraForm">
-                <div class="input-group"><input type="text" id="obraNombre" placeholder="Nombre del Proyecto" required></div>
-                <div class="input-group"><input type="text" id="obraCliente" placeholder="Cliente" required></div>
-                <div class="input-group"><input type="text" id="obraDireccion" placeholder="Dirección / Ubicación" required></div>
-                <button type="submit" class="btn-primary">Crear Proyecto</button>
+                <div class="input-group" style="flex-grow: 2;">
+                    <label>Nombre del Proyecto</label>
+                    <input type="text" id="obraNombre" placeholder="Ej. Torre Reforma" required>
+                </div>
+                <div class="input-group">
+                    <label>Cliente</label>
+                    <input type="text" id="obraCliente" placeholder="Ej. Fibra Uno" required>
+                </div>
+                <div class="input-group">
+                    <label>Ubicación</label>
+                    <input type="text" id="obraDireccion" placeholder="Dirección corta" required>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-bottom: 2px;">Crear Proyecto</button>
             </form>
-            <div id="listaObras" style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;"></div>
+            <div id="listaObras" style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;"></div>
         </div>
 
         <div class="card">
-            <h3 class="card-title">📦 Inventario de Materiales</h3>
-
-            <div class="filter-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="color: var(--text-muted); font-weight: bold; font-size: 0.85em;">FILTRAR UBICACIÓN:</span>
-                    <select id="filtroUbicacion" onchange="cargarMateriales()" style="border: none; background: transparent; color: white; font-weight: bold; cursor: pointer; text-transform: uppercase;">
-                        <option value="Todos" style="background: #222;">Ver Todo</option>
-                        <option value="Bodega Central" style="background: #222;">Solo Bodega Central</option>
-                    </select>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 1.2em;">🔍</span>
-                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar material..." style="background: #333; border: 1px solid #444; color: white; padding: 5px 10px; border-radius: 20px; width: 200px;">
+            <div class="card-header">
+                <h3 class="card-title">📦 Inventario</h3>
+                
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span style="font-size: 1.2em; opacity: 0.5;">🔍</span>
+                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar material..." 
+                           style="background: transparent; border: none; border-bottom: 1px solid #555; border-radius: 0; padding: 5px; width: 200px;">
                 </div>
             </div>
 
-            <div style="background: #222; padding: 15px; border-radius: 6px; margin-bottom: 25px;">
-                <form id="materialForm">
-                    <input type="text" id="nombre" placeholder="Material (ej. Cemento)" required>
-                    
-                    <input type="text" id="categoria" list="listaCategorias" placeholder="Categoría" required>
-                    <datalist id="listaCategorias">
-                        <option value="Obra Negra"><option value="Acabados"><option value="Eléctrico">
-                        <option value="Hidrosanitario"><option value="Aceros"><option value="Herramienta">
-                    </datalist>
-
-                    <input type="text" id="unidad" list="listaUnidades" placeholder="Unidad" style="width: 100px;" required>
-                    <datalist id="listaUnidades">
-                        <option value="Pieza"><option value="Bulto"><option value="Bulto 50kg">
-                        <option value="Metro (m)"><option value="M2"><option value="M3">
-                        <option value="Litro"><option value="Cubeta 19L"><option value="Caja"><option value="Tonelada">
-                    </datalist>
-
-                    <input type="number" id="cantidad" placeholder="Cant." style="width: 80px;" required>
-                    <select id="ubicacion">
-                        <option value="Bodega Central">Bodega Central</option>
+            <div style="background: #252525; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--text-muted);">¿Dónde quieres buscar?</span>
+                    <select id="filtroUbicacion" onchange="cargarMateriales()" style="border: none; background: #333; font-weight: bold; cursor: pointer;">
+                        <option value="Todos">👀 En todas partes</option>
+                        <option value="Bodega Central">🏠 Solo Bodega Central</option>
                     </select>
-                    <button type="submit" class="btn-primary" style="background-color: #444; color: white; border: 1px solid #555;">+ Agregar</button>
+                </div>
+                <span style="font-size: 0.8em; color: var(--text-muted);">ℹ️ Mostrando inventario en tiempo real</span>
+            </div>
+
+            <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333;">
+                <form id="materialForm">
+                    <div class="input-group" style="flex-grow: 2;">
+                        <label>¿Qué material es?</label>
+                        <input type="text" id="nombre" placeholder="Ej. Cemento Gris" required>
+                    </div>
+                    
+                    <div class="input-group" style="flex-grow: 1.5;">
+                        <label>Categoría</label>
+                        <div style="position: relative;">
+                            <input type="text" id="categoria" placeholder="Seleccionar..." readonly 
+                                   onclick="abrirSelector('categoria')" style="cursor: pointer; width: 100%; box-sizing: border-box;">
+                            <span style="position: absolute; right: 10px; top: 12px; pointer-events: none;">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="width: 140px;">
+                        <label>Unidad</label>
+                        <div style="position: relative;">
+                            <input type="text" id="unidad" placeholder="Ej. m²" readonly 
+                                   onclick="abrirSelector('unidad')" style="cursor: pointer; width: 100%; box-sizing: border-box;">
+                            <span style="position: absolute; right: 10px; top: 12px; pointer-events: none;">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="width: 100px;">
+                        <label>Cantidad</label>
+                        <input type="number" id="cantidad" placeholder="0" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>¿Dónde está?</label>
+                        <select id="ubicacion">
+                            <option value="Bodega Central">Bodega Central</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-bottom: 2px;">+ Agregar</button>
                 </form>
             </div>
 
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 50px;">ID</th>
-                        <th>Material</th>
-                        <th>Categoría</th>
-                        <th>Ubicación Actual</th>
-                        <th>Existencias</th>
-                        <th style="text-align: right;">Acciones</th>
+                        <th style="width: 40px;">Ref</th>
+                        <th>Material / Categoría</th>
+                        <th>Ubicación</th>
+                        <th style="text-align: center;">Disponible Ahora</th>
+                        <th style="text-align: right;">Gestionar</th>
                     </tr>
                 </thead>
                 <tbody id="tablaMateriales">
@@ -207,6 +382,44 @@
         </div>
     </div>
 
+    <div id="selectorModal" class="modal-overlay" onclick="cerrarSelector(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div style="width: 100%;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <h3 style="margin: 0; color: white;" id="modalTitle">Seleccionar</h3>
+                        <span class="close-modal" onclick="cerrarSelector()">×</span>
+                    </div>
+                    <input type="text" class="modal-search" id="modalSearch" placeholder="Escribe para buscar rápido..." onkeyup="filtrarOpcionesModal()">
+                </div>
+            </div>
+            <div class="modal-content" id="modalGrid">
+                </div>
+        </div>
+    </div>
+
     <script src="js/dashboard.js"></script>
+
+<div id="stockModal" class="modal-overlay">
+    <div class="modal-box" style="width: 320px; overflow: visible;"> <div class="modal-header" style="border: none; padding-bottom: 0; background: transparent;">
+            <h3 style="margin: 0; color: var(--text-muted); text-transform: uppercase; font-size: 0.8em; letter-spacing: 2px; text-align: center; width: 100%;">
+                Ajustar Inventario
+            </h3>
+        </div>
+        
+        <div class="modal-content" style="padding: 10px 30px 30px 30px; overflow: visible;">
+            
+            <input type="number" id="stockInputModal" class="stock-input-hud" 
+                   placeholder="0" onkeydown="verificarEnterStock(event)">
+            
+            <div class="modal-footer">
+                <button class="btn-ghost" onclick="cerrarStockModal()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarStockModal()" style="width: auto; padding: 0 30px;">OK</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
 </body>
 </html>
