@@ -1,50 +1,235 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MHG Arquitectos - Acceso</title>
+    <title>Acceso - MHG</title>
+    <link rel="icon" type="image/png" href="images/favicon-96x96.png" sizes="96x96" />
     <style>
         body {
-            background-color: #121212;
-            color: #E0E0E0;
+            background-color: #f9d3d3;
+            color: white;
             font-family: 'Segoe UI', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            text-align: center;
         }
-        .login-box {
-            border: 1px solid #333;
-            padding: 50px;
-            border-radius: 8px;
+
+        .login-card {
             background: #1E1E1E;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #333;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            width: 320px;
         }
-        h1 { margin: 0 0 10px 0; letter-spacing: 2px; }
-        h1 span { color: #2196F3; }
-        p { color: #888; margin-bottom: 30px; }
-        
-        .btn-enter {
-            background-color: #2196F3;
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        h1 span {
+            font-weight: 700;
             color: white;
-            padding: 15px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background 0.3s;
-            display: inline-block;
         }
-        .btn-enter:hover { background-color: #1976D2; }
+
+        p {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        /* VISOR DEL CÓDIGO */
+        .pin-display {
+            background: #111;
+            border: 1px solid #333;
+            padding: 15px;
+            font-size: 2em;
+            letter-spacing: 10px;
+            color: white;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pin-dot {
+            color: white;
+        }
+
+        .pin-placeholder {
+            color: #333;
+            font-size: 0.5em;
+            letter-spacing: normal;
+        }
+
+        /* TECLADO NUMÉRICO */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .num-btn {
+            background: #2A2A2A;
+            border: 1px solid #333;
+            color: white;
+            font-size: 1.5em;
+            padding: 20px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.1s;
+            font-weight: bold;
+        }
+
+        .num-btn:active {
+            background: white;
+            color: black;
+            transform: scale(0.95);
+        }
+
+        .btn-clear {
+            background: #CF6679;
+            border-color: #B00020;
+        }
+
+        .btn-enter {
+            background: #00C853;
+            border-color: #009624;
+            grid-column: span 3;
+            color: white;
+            text-transform: uppercase;
+            font-size: 1em;
+            padding: 15px;
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+
+        .error-msg {
+            color: #FF6B6B;
+            margin-top: 15px;
+            min-height: 20px;
+            font-size: 0.9em;
+            display: none;
+        }
     </style>
 </head>
+
 <body>
-    <div class="login-box">
-        <h1>MHG <span>ARQUITECTOS</span></h1>
-        <p>Sistema de Gestión de Inventario v1.0</p>
-        <a href="dashboard.html" class="btn-enter">Ingresar al Sistema →</a>
+
+    <div class="login-card">
+        <h1>MHG <span>ACCESO</span></h1>
+        <p>Ingresa tu código de personal</p>
+
+        <div class="pin-display" id="display">
+            <span class="pin-placeholder">TAP PARA INICIAR</span>
+        </div>
+
+        <div class="error-msg" id="errorMsg">Código incorrecto</div>
+
+        <div class="numpad">
+            <button class="num-btn" onclick="addNum(1)">1</button>
+            <button class="num-btn" onclick="addNum(2)">2</button>
+            <button class="num-btn" onclick="addNum(3)">3</button>
+            <button class="num-btn" onclick="addNum(4)">4</button>
+            <button class="num-btn" onclick="addNum(5)">5</button>
+            <button class="num-btn" onclick="addNum(6)">6</button>
+            <button class="num-btn" onclick="addNum(7)">7</button>
+            <button class="num-btn" onclick="addNum(8)">8</button>
+            <button class="num-btn" onclick="addNum(9)">9</button>
+            <button class="num-btn btn-clear" onclick="clearPin()">C</button>
+            <button class="num-btn" onclick="addNum(0)">0</button>
+            <button class="num-btn" onclick="backspace()">⌫</button>
+
+            <button class="num-btn btn-enter" onclick="login()">ENTRAR ➜</button>
+        </div>
     </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        // Usa CONFIG si está disponible, sino fallback
+
+        const API_URL = "http://localhost:8000";
+        let pin = "";
+
+        function updateDisplay() {
+            const display = document.getElementById('display');
+            if (pin.length === 0) {
+                display.innerHTML = '<span class="pin-placeholder">_ _ _ _ _ _</span>';
+            } else {
+                // Muestra puntos en lugar de números por seguridad
+                display.innerHTML = '•'.repeat(pin.length);
+            }
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+
+        function addNum(num) {
+            if (pin.length < 6) {
+                pin += num;
+                updateDisplay();
+            }
+        }
+
+        function clearPin() {
+            pin = "";
+            updateDisplay();
+        }
+
+        function backspace() {
+            pin = pin.slice(0, -1);
+            updateDisplay();
+        }
+
+        async function login() {
+            if (pin.length < 4) return;
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ codigo: pin })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // GUARDAMOS LA SESIÓN
+                    localStorage.setItem("usuarioNombre", data.nombre);
+                    localStorage.setItem("usuarioRol", data.rol);
+
+                    // Redirigir al Dashboard
+                    window.location.href = "dashboard.html";
+                } else {
+                    const err = await response.json();
+                    document.getElementById('errorMsg').style.display = 'block';
+                    document.getElementById('errorMsg').innerText = "Código Incorrecto";
+                    if (navigator.vibrate) navigator.vibrate(200); // Vibrar si es tablet
+                    setTimeout(clearPin, 500);
+                }
+            } catch (e) {
+                console.error("Error de conexión:", e);
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').innerText = "Error de conexión";
+            }
+        }
+
+        // Soporte teclado físico por si acaso
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') addNum(e.key);
+            if (e.key === 'Backspace') backspace();
+            if (e.key === 'Enter') login();
+            if (e.key === 'Escape') clearPin();
+        });
+
+        updateDisplay();
+    </script>
 </body>
+
 </html>

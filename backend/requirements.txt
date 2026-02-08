@@ -2,3 +2,13 @@ fastapi
 uvicorn
 sqlalchemy
 pydantic
+psycopg2-binary
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-cov>=4.1.0
+httpx>=0.24.1
+
+# Production dependencies (para cuando migren de SQLite)
+# psycopg2-binary>=2.9.0  # PostgreSQL
+# alembic>=1.12.0  # Migraciones de DB

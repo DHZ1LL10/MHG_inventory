@@ -1,10 +1,44 @@
+version: '3.8'
+
 services:
-  api:
-    build: ./backend  # Construye lo que está en la carpeta backend
+  # 🐘 BASE DE DATOS REAL (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: mhg_db
+    restart: always
+    environment:
+      - POSTGRES_USER=mhg_admin
+      - POSTGRES_PASSWORD=secreto_seguro
+      - POSTGRES_DB=mhg_inventario
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 🧠 BACKEND (Python)
+  backend:
+    build: ./backend
     container_name: mhg_backend
     ports:
-      - "8000:8000"   # Conecta puerto 8000 de tu PC al 8000 del contenedor
+      - "8000:8000"
     volumes:
-      - ./backend:/app # ¡Truco! Sincroniza tu código en vivo (Hot Reload)
-    # Comando explícito para habilitar reload mientras programas
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      - ./backend:/app
+    depends_on:
+      - db # Espera a que la BD inicie
+    environment:
+      # Le decimos al backend dónde está la BD
+      - DATABASE_URL=postgresql://mhg_admin:secreto_seguro@db:5432/mhg_inventario
+
+  # 🎨 FRONTEND (Nginx)
+  frontend:
+    image: nginx:alpine
+    container_name: mhg_frontend
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

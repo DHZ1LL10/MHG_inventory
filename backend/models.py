@@ -1,51 +1,52 @@
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text
+from sqlalchemy.orm import relationship
 from database import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
-from sqlalchemy.sql import func
-import enum
-
-# Enums para estandarizar
-class TipoMovimiento(str, enum.Enum):
-    ENTRADA = "ENTRADA"  # Compra de material
-    SALIDA = "SALIDA"    # Uso en obra, venta o taller
-
-class RolDispositivo(str, enum.Enum):
-    ADMIN = "ADMIN"           # Tu primo (Todo)
-    TALLER = "TALLER"         # Carpinteros (Solo restar stock)
-    EXHIBICION = "EXHIBICION" # Ventas (Solo restar stock y ver precios)
-
-# --- TABLAS ---
-
-class Dispositivo(Base):
-    __tablename__ = "dispositivos"
-    id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String)  # Ej: "Tablet Carpintería 1"
-    codigo_acceso = Column(String, unique=True) # El PIN de 6 dígitos
-    rol = Column(String) # ADMIN, TALLER, EXHIBICION
-    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
+from datetime import datetime
 
 class Material(Base):
     __tablename__ = "materiales"
+
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, index=True)
     categoria = Column(String)
     unidad = Column(String)
     cantidad = Column(Integer, default=0)
-    ubicacion = Column(String) # Bodega o Taller
+    ubicacion = Column(String) # "Bodega Central", "Taller", etc.
+    min_stock = Column(Integer, default=5)
+    
+    # --- 💰 NUEVOS CAMPOS FINANCIEROS ---
+    costo_unitario = Column(Float, default=0.0) # A cómo lo compramos (Costo interno)
+    precio_venta = Column(Float, default=0.0)   # A cómo lo vendemos (Público)
+    proveedor = Column(String, default="Genérico") # Quién nos surte
+    ultimo_abastecimiento = Column(DateTime, default=datetime.utcnow) # Cuándo llegó stock nuevo
+
+class Movimiento(Base):
+    __tablename__ = "movimientos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    material_id = Column(Integer, ForeignKey("materiales.id"))
+    cantidad = Column(Integer)
+    tipo = Column(String) # "ENTRADA" o "SALIDA"
+    motivo = Column(String) # "Obra: X", "Venta", "Ajuste"
+    fecha = Column(DateTime, default=datetime.utcnow)
+    usuario = Column(String)
+    
+    # --- 💰 NUEVO CAMPO DE VALOR ---
+    valor_monetario = Column(Float, default=0.0) # Cuánto dinero representó este movimiento
 
 class Obra(Base):
     __tablename__ = "obras"
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String)
+    nombre = Column(String, unique=True)
     cliente = Column(String)
     direccion = Column(String)
-    activa = Column(Integer, default=1) # 1 = Activa, 0 = Terminada
+    # --- 💰 CONTROL DE GASTOS ---
+    presupuesto_asignado = Column(Float, default=0.0) # Tope de gasto (Opcional)
+    gasto_actual = Column(Float, default=0.0) # Acumulado de salidas hacia esta obra
 
-class Movimiento(Base):
-    __tablename__ = "movimientos"
+class Dispositivo(Base):
+    __tablename__ = "dispositivos"
     id = Column(Integer, primary_key=True, index=True)
-    material_id = Column(Integer, ForeignKey("materiales.id"))
-    cantidad = Column(Integer)
-    tipo = Column(String) # ENTRADA o SALIDA
-    motivo = Column(String) # Ej: "Para Torre Mitikah", "Venta Mostrador", "Uso Interno Taller"
-    fecha = Column(DateTime(timezone=True), server_default=func.now())
-    usuario = Column(String) # Quién hizo el movimiento (Ej: "Tablet Taller")
+    nombre = Column(String)
+    codigo_acceso = Column(String, unique=True)
+    rol = Column(String)
