@@ -1,0 +1,1374 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-7.4.4, pluggy-1.6.0 -- C:\Users\dhzil\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\dhzil\OneDrive\Escritorio\Carpetas\Arqui\inventario\backend
+configfile: pytest.ini
+plugins: asyncio-0.23.3, anyio-4.12.1, cov-7.0.0
+asyncio: mode=Mode.STRICT
+collecting ... collected 1 item
+
+tests/test_api.py::TestObras::test_crear_obra FAILED                     [100%]
+
+================================== FAILURES ===================================
+__________________________ TestObras.test_crear_obra __________________________
+
+self = <tests.test_api.TestObras object at 0x0000021F018F4CD0>
+client = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+
+    def test_crear_obra(self, client):
+        """POST /obras/ debe crear nueva obra"""
+        payload = {
+            "nombre": "Casa Lomas",
+            "cliente": "Sr. PÚrez",
+            "direccion": "Lomas de Chapultepec",
+            "presupuesto_asignado": 150000.0
+        }
+>       response = client.post("/obras/", json=payload)
+
+tests\test_api.py:357: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+url = '/obras/'
+
+    def post(  # type: ignore[override]
+        self,
+        url: httpx._types.URLTypes,
+        *,
+        content: typing.Optional[httpx._types.RequestContent] = None,
+        data: typing.Optional[_RequestData] = None,
+        files: typing.Optional[httpx._types.RequestFiles] = None,
+        json: typing.Any = None,
+        params: typing.Optional[httpx._types.QueryParamTypes] = None,
+        headers: typing.Optional[httpx._types.HeaderTypes] = None,
+        cookies: typing.Optional[httpx._types.CookieTypes] = None,
+        auth: typing.Union[
+            httpx._types.AuthTypes, httpx._client.UseClientDefault
+        ] = httpx._client.USE_CLIENT_DEFAULT,
+        follow_redirects: typing.Optional[bool] = None,
+        allow_redirects: typing.Optional[bool] = None,
+        timeout: typing.Union[
+            httpx._types.TimeoutTypes, httpx._client.UseClientDefault
+        ] = httpx._client.USE_CLIENT_DEFAULT,
+        extensions: typing.Optional[typing.Dict[str, typing.Any]] = None,
+    ) -> httpx.Response:
+        redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
+>       return super().post(
+            url,
+            content=content,
+            data=data,
+            files=files,
+            json=json,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            auth=auth,
+            follow_redirects=redirect,
+            timeout=timeout,
+            extensions=extensions,
+        )
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py:593: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+url = '/obras/'
+
+    def post(
+        self,
+        url: URLTypes,
+        *,
+        content: typing.Optional[RequestContent] = None,
+        data: typing.Optional[RequestData] = None,
+        files: typing.Optional[RequestFiles] = None,
+        json: typing.Optional[typing.Any] = None,
+        params: typing.Optional[QueryParamTypes] = None,
+        headers: typing.Optional[HeaderTypes] = None,
+        cookies: typing.Optional[CookieTypes] = None,
+        auth: typing.Union[AuthTypes, UseClientDefault] = USE_CLIENT_DEFAULT,
+        follow_redirects: typing.Union[bool, UseClientDefault] = USE_CLIENT_DEFAULT,
+        timeout: typing.Union[TimeoutTypes, UseClientDefault] = USE_CLIENT_DEFAULT,
+        extensions: typing.Optional[RequestExtensions] = None,
+    ) -> Response:
+        """
+        Send a `POST` request.
+    
+        **Parameters**: See `httpx.request`.
+        """
+>       return self.request(
+            "POST",
+            url,
+            content=content,
+            data=data,
+            files=files,
+            json=json,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            auth=auth,
+            follow_redirects=follow_redirects,
+            timeout=timeout,
+            extensions=extensions,
+        )
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:1146: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+method = 'POST', url = URL('http://testserver/obras/')
+
+    def request(  # type: ignore[override]
+        self,
+        method: str,
+        url: httpx._types.URLTypes,
+        *,
+        content: typing.Optional[httpx._types.RequestContent] = None,
+        data: typing.Optional[_RequestData] = None,
+        files: typing.Optional[httpx._types.RequestFiles] = None,
+        json: typing.Any = None,
+        params: typing.Optional[httpx._types.QueryParamTypes] = None,
+        headers: typing.Optional[httpx._types.HeaderTypes] = None,
+        cookies: typing.Optional[httpx._types.CookieTypes] = None,
+        auth: typing.Union[
+            httpx._types.AuthTypes, httpx._client.UseClientDefault
+        ] = httpx._client.USE_CLIENT_DEFAULT,
+        follow_redirects: typing.Optional[bool] = None,
+        allow_redirects: typing.Optional[bool] = None,
+        timeout: typing.Union[
+            httpx._types.TimeoutTypes, httpx._client.UseClientDefault
+        ] = httpx._client.USE_CLIENT_DEFAULT,
+        extensions: typing.Optional[typing.Dict[str, typing.Any]] = None,
+    ) -> httpx.Response:
+        url = self._merge_url(url)
+        redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
+>       return super().request(
+            method,
+            url,
+            content=content,
+            data=data,
+            files=files,
+            json=json,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            auth=auth,
+            follow_redirects=redirect,
+            timeout=timeout,
+            extensions=extensions,
+        )
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py:468: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+method = 'POST', url = URL('http://testserver/obras/')
+
+    def request(
+        self,
+        method: str,
+        url: URLTypes,
+        *,
+        content: typing.Optional[RequestContent] = None,
+        data: typing.Optional[RequestData] = None,
+        files: typing.Optional[RequestFiles] = None,
+        json: typing.Optional[typing.Any] = None,
+        params: typing.Optional[QueryParamTypes] = None,
+        headers: typing.Optional[HeaderTypes] = None,
+        cookies: typing.Optional[CookieTypes] = None,
+        auth: typing.Union[AuthTypes, UseClientDefault, None] = USE_CLIENT_DEFAULT,
+        follow_redirects: typing.Union[bool, UseClientDefault] = USE_CLIENT_DEFAULT,
+        timeout: typing.Union[TimeoutTypes, UseClientDefault] = USE_CLIENT_DEFAULT,
+        extensions: typing.Optional[RequestExtensions] = None,
+    ) -> Response:
+        """
+        Build and send a request.
+    
+        Equivalent to:
+    
+        ```python
+        request = client.build_request(...)
+        response = client.send(request, ...)
+        ```
+    
+        See `Client.build_request()`, `Client.send()` and
+        [Merging of configuration][0] for how the various parameters
+        are merged with client-level configuration.
+    
+        [0]: /advanced/#merging-of-configuration
+        """
+        if cookies is not None:
+            message = (
+                "Setting per-request cookies=<...> is being deprecated, because "
+                "the expected behaviour on cookie persistence is ambiguous. Set "
+                "cookies directly on the client instance instead."
+            )
+            warnings.warn(message, DeprecationWarning)
+    
+        request = self.build_request(
+            method=method,
+            url=url,
+            content=content,
+            data=data,
+            files=files,
+            json=json,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            timeout=timeout,
+            extensions=extensions,
+        )
+>       return self.send(request, auth=auth, follow_redirects=follow_redirects)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:828: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+request = <Request('POST', 'http://testserver/obras/')>
+
+    def send(
+        self,
+        request: Request,
+        *,
+        stream: bool = False,
+        auth: typing.Union[AuthTypes, UseClientDefault, None] = USE_CLIENT_DEFAULT,
+        follow_redirects: typing.Union[bool, UseClientDefault] = USE_CLIENT_DEFAULT,
+    ) -> Response:
+        """
+        Send a request.
+    
+        The request is sent as-is, unmodified.
+    
+        Typically you'll want to build one with `Client.build_request()`
+        so that any client-level configuration is merged into the request,
+        but passing an explicit `httpx.Request()` is supported as well.
+    
+        See also: [Request instances][0]
+    
+        [0]: /advanced/#request-instances
+        """
+        if self._state == ClientState.CLOSED:
+            raise RuntimeError("Cannot send a request, as the client has been closed.")
+    
+        self._state = ClientState.OPENED
+        follow_redirects = (
+            self.follow_redirects
+            if isinstance(follow_redirects, UseClientDefault)
+            else follow_redirects
+        )
+    
+        auth = self._build_request_auth(request, auth)
+    
+>       response = self._send_handling_auth(
+            request,
+            auth=auth,
+            follow_redirects=follow_redirects,
+            history=[],
+        )
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:915: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+request = <Request('POST', 'http://testserver/obras/')>
+auth = <httpx.Auth object at 0x0000021F01805C50>, follow_redirects = True
+history = []
+
+    def _send_handling_auth(
+        self,
+        request: Request,
+        auth: Auth,
+        follow_redirects: bool,
+        history: typing.List[Response],
+    ) -> Response:
+        auth_flow = auth.sync_auth_flow(request)
+        try:
+            request = next(auth_flow)
+    
+            while True:
+>               response = self._send_handling_redirects(
+                    request,
+                    follow_redirects=follow_redirects,
+                    history=history,
+                )
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:943: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+request = <Request('POST', 'http://testserver/obras/')>, follow_redirects = True
+history = []
+
+    def _send_handling_redirects(
+        self,
+        request: Request,
+        follow_redirects: bool,
+        history: typing.List[Response],
+    ) -> Response:
+        while True:
+            if len(history) > self.max_redirects:
+                raise TooManyRedirects(
+                    "Exceeded maximum allowed redirects.", request=request
+                )
+    
+            for hook in self._event_hooks["request"]:
+                hook(request)
+    
+>           response = self._send_single_request(request)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:980: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient.TestClient object at 0x0000021F018A8ED0>
+request = <Request('POST', 'http://testserver/obras/')>
+
+    def _send_single_request(self, request: Request) -> Response:
+        """
+        Sends a single request, without handling any redirections.
+        """
+        transport = self._transport_for_url(request.url)
+        timer = Timer()
+        timer.sync_start()
+    
+        if not isinstance(request.stream, SyncByteStream):
+            raise RuntimeError(
+                "Attempted to send an async request with a sync Client instance."
+            )
+    
+        with request_context(request=request):
+>           response = transport.handle_request(request)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\httpx\_client.py:1016: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient._TestClientTransport object at 0x0000021F01878710>
+request = <Request('POST', 'http://testserver/obras/')>
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        scheme = request.url.scheme
+        netloc = request.url.netloc.decode(encoding="ascii")
+        path = request.url.path
+        raw_path = request.url.raw_path
+        query = request.url.query.decode(encoding="ascii")
+    
+        default_port = {"http": 80, "ws": 80, "https": 443, "wss": 443}[scheme]
+    
+        if ":" in netloc:
+            host, port_string = netloc.split(":", 1)
+            port = int(port_string)
+        else:
+            host = netloc
+            port = default_port
+    
+        # Include the 'host' header.
+        if "host" in request.headers:
+            headers: typing.List[typing.Tuple[bytes, bytes]] = []
+        elif port == default_port:  # pragma: no cover
+            headers = [(b"host", host.encode())]
+        else:  # pragma: no cover
+            headers = [(b"host", (f"{host}:{port}").encode())]
+    
+        # Include other request headers.
+        headers += [
+            (key.lower().encode(), value.encode())
+            for key, value in request.headers.multi_items()
+        ]
+    
+        scope: typing.Dict[str, typing.Any]
+    
+        if scheme in {"ws", "wss"}:
+            subprotocol = request.headers.get("sec-websocket-protocol", None)
+            if subprotocol is None:
+                subprotocols: typing.Sequence[str] = []
+            else:
+                subprotocols = [value.strip() for value in subprotocol.split(",")]
+            scope = {
+                "type": "websocket",
+                "path": unquote(path),
+                "raw_path": raw_path,
+                "root_path": self.root_path,
+                "scheme": scheme,
+                "query_string": query.encode(),
+                "headers": headers,
+                "client": None,
+                "server": [host, port],
+                "subprotocols": subprotocols,
+                "state": self.app_state.copy(),
+            }
+            session = WebSocketTestSession(self.app, scope, self.portal_factory)
+            raise _Upgrade(session)
+    
+        scope = {
+            "type": "http",
+            "http_version": "1.1",
+            "method": request.method,
+            "path": unquote(path),
+            "raw_path": raw_path,
+            "root_path": self.root_path,
+            "scheme": scheme,
+            "query_string": query.encode(),
+            "headers": headers,
+            "client": None,
+            "server": [host, port],
+            "extensions": {"http.response.debug": {}},
+            "state": self.app_state.copy(),
+        }
+    
+        request_complete = False
+        response_started = False
+        response_complete: anyio.Event
+        raw_kwargs: typing.Dict[str, typing.Any] = {"stream": io.BytesIO()}
+        template = None
+        context = None
+    
+        async def receive() -> Message:
+            nonlocal request_complete
+    
+            if request_complete:
+                if not response_complete.is_set():
+                    await response_complete.wait()
+                return {"type": "http.disconnect"}
+    
+            body = request.read()
+            if isinstance(body, str):
+                body_bytes: bytes = body.encode("utf-8")  # pragma: no cover
+            elif body is None:
+                body_bytes = b""  # pragma: no cover
+            elif isinstance(body, GeneratorType):
+                try:  # pragma: no cover
+                    chunk = body.send(None)
+                    if isinstance(chunk, str):
+                        chunk = chunk.encode("utf-8")
+                    return {"type": "http.request", "body": chunk, "more_body": True}
+                except StopIteration:  # pragma: no cover
+                    request_complete = True
+                    return {"type": "http.request", "body": b""}
+            else:
+                body_bytes = body
+    
+            request_complete = True
+            return {"type": "http.request", "body": body_bytes}
+    
+        async def send(message: Message) -> None:
+            nonlocal raw_kwargs, response_started, template, context
+    
+            if message["type"] == "http.response.start":
+                assert (
+                    not response_started
+                ), 'Received multiple "http.response.start" messages.'
+                raw_kwargs["status_code"] = message["status"]
+                raw_kwargs["headers"] = [
+                    (key.decode(), value.decode())
+                    for key, value in message.get("headers", [])
+                ]
+                response_started = True
+            elif message["type"] == "http.response.body":
+                assert (
+                    response_started
+                ), 'Received "http.response.body" without "http.response.start".'
+                assert (
+                    not response_complete.is_set()
+                ), 'Received "http.response.body" after response completed.'
+                body = message.get("body", b"")
+                more_body = message.get("more_body", False)
+                if request.method != "HEAD":
+                    raw_kwargs["stream"].write(body)
+                if not more_body:
+                    raw_kwargs["stream"].seek(0)
+                    response_complete.set()
+            elif message["type"] == "http.response.debug":
+                template = message["info"]["template"]
+                context = message["info"]["context"]
+    
+        try:
+            with self.portal_factory() as portal:
+                response_complete = portal.call(anyio.Event)
+                portal.call(self.app, scope, receive, send)
+        except BaseException as exc:
+            if self.raise_server_exceptions:
+>               raise exc
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.testclient._TestClientTransport object at 0x0000021F01878710>
+request = <Request('POST', 'http://testserver/obras/')>
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        scheme = request.url.scheme
+        netloc = request.url.netloc.decode(encoding="ascii")
+        path = request.url.path
+        raw_path = request.url.raw_path
+        query = request.url.query.decode(encoding="ascii")
+    
+        default_port = {"http": 80, "ws": 80, "https": 443, "wss": 443}[scheme]
+    
+        if ":" in netloc:
+            host, port_string = netloc.split(":", 1)
+            port = int(port_string)
+        else:
+            host = netloc
+            port = default_port
+    
+        # Include the 'host' header.
+        if "host" in request.headers:
+            headers: typing.List[typing.Tuple[bytes, bytes]] = []
+        elif port == default_port:  # pragma: no cover
+            headers = [(b"host", host.encode())]
+        else:  # pragma: no cover
+            headers = [(b"host", (f"{host}:{port}").encode())]
+    
+        # Include other request headers.
+        headers += [
+            (key.lower().encode(), value.encode())
+            for key, value in request.headers.multi_items()
+        ]
+    
+        scope: typing.Dict[str, typing.Any]
+    
+        if scheme in {"ws", "wss"}:
+            subprotocol = request.headers.get("sec-websocket-protocol", None)
+            if subprotocol is None:
+                subprotocols: typing.Sequence[str] = []
+            else:
+                subprotocols = [value.strip() for value in subprotocol.split(",")]
+            scope = {
+                "type": "websocket",
+                "path": unquote(path),
+                "raw_path": raw_path,
+                "root_path": self.root_path,
+                "scheme": scheme,
+                "query_string": query.encode(),
+                "headers": headers,
+                "client": None,
+                "server": [host, port],
+                "subprotocols": subprotocols,
+                "state": self.app_state.copy(),
+            }
+            session = WebSocketTestSession(self.app, scope, self.portal_factory)
+            raise _Upgrade(session)
+    
+        scope = {
+            "type": "http",
+            "http_version": "1.1",
+            "method": request.method,
+            "path": unquote(path),
+            "raw_path": raw_path,
+            "root_path": self.root_path,
+            "scheme": scheme,
+            "query_string": query.encode(),
+            "headers": headers,
+            "client": None,
+            "server": [host, port],
+            "extensions": {"http.response.debug": {}},
+            "state": self.app_state.copy(),
+        }
+    
+        request_complete = False
+        response_started = False
+        response_complete: anyio.Event
+        raw_kwargs: typing.Dict[str, typing.Any] = {"stream": io.BytesIO()}
+        template = None
+        context = None
+    
+        async def receive() -> Message:
+            nonlocal request_complete
+    
+            if request_complete:
+                if not response_complete.is_set():
+                    await response_complete.wait()
+                return {"type": "http.disconnect"}
+    
+            body = request.read()
+            if isinstance(body, str):
+                body_bytes: bytes = body.encode("utf-8")  # pragma: no cover
+            elif body is None:
+                body_bytes = b""  # pragma: no cover
+            elif isinstance(body, GeneratorType):
+                try:  # pragma: no cover
+                    chunk = body.send(None)
+                    if isinstance(chunk, str):
+                        chunk = chunk.encode("utf-8")
+                    return {"type": "http.request", "body": chunk, "more_body": True}
+                except StopIteration:  # pragma: no cover
+                    request_complete = True
+                    return {"type": "http.request", "body": b""}
+            else:
+                body_bytes = body
+    
+            request_complete = True
+            return {"type": "http.request", "body": body_bytes}
+    
+        async def send(message: Message) -> None:
+            nonlocal raw_kwargs, response_started, template, context
+    
+            if message["type"] == "http.response.start":
+                assert (
+                    not response_started
+                ), 'Received multiple "http.response.start" messages.'
+                raw_kwargs["status_code"] = message["status"]
+                raw_kwargs["headers"] = [
+                    (key.decode(), value.decode())
+                    for key, value in message.get("headers", [])
+                ]
+                response_started = True
+            elif message["type"] == "http.response.body":
+                assert (
+                    response_started
+                ), 'Received "http.response.body" without "http.response.start".'
+                assert (
+                    not response_complete.is_set()
+                ), 'Received "http.response.body" after response completed.'
+                body = message.get("body", b"")
+                more_body = message.get("more_body", False)
+                if request.method != "HEAD":
+                    raw_kwargs["stream"].write(body)
+                if not more_body:
+                    raw_kwargs["stream"].seek(0)
+                    response_complete.set()
+            elif message["type"] == "http.response.debug":
+                template = message["info"]["template"]
+                context = message["info"]["context"]
+    
+        try:
+            with self.portal_factory() as portal:
+                response_complete = portal.call(anyio.Event)
+>               portal.call(self.app, scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\testclient.py:341: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <anyio.from_thread.BlockingPortal object at 0x0000021F018C8110>
+func = <fastapi.applications.FastAPI object at 0x0000021F018782D0>
+args = ({'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra...ls>.receive at 0x0000021F01897D80>, <function _TestClientTransport.handle_request.<locals>.send at 0x0000021F018FC2C0>)
+
+    def call(
+        self,
+        func: Callable[[Unpack[PosArgsT]], Awaitable[T_Retval] | T_Retval],
+        *args: Unpack[PosArgsT],
+    ) -> T_Retval:
+        """
+        Call the given function in the event loop thread.
+    
+        If the callable returns a coroutine object, it is awaited on.
+    
+        :param func: any callable
+        :raises RuntimeError: if the portal is not running or if this method is called
+            from within the event loop thread
+    
+        """
+>       return cast(T_Retval, self.start_task_soon(func, *args).result())
+
+C:\Users\dhzil\AppData\Local\Programs\Python\Python311\Lib\site-packages\anyio\from_thread.py:334: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = None, timeout = None
+
+    def result(self, timeout=None):
+        """Return the result of the call that the future represents.
+    
+        Args:
+            timeout: The number of seconds to wait for the result if the future
+                isn't done. If None, then there is no limit on the wait time.
+    
+        Returns:
+            The result of the call that the future represents.
+    
+        Raises:
+            CancelledError: If the future was cancelled.
+            TimeoutError: If the future didn't finish executing before the given
+                timeout.
+            Exception: If the call raised then that exception will be raised.
+        """
+        try:
+            with self._condition:
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+                    return self.__get_result()
+    
+                self._condition.wait(timeout)
+    
+                if self._state in [CANCELLED, CANCELLED_AND_NOTIFIED]:
+                    raise CancelledError()
+                elif self._state == FINISHED:
+>                   return self.__get_result()
+
+C:\Users\dhzil\AppData\Local\Programs\Python\Python311\Lib\concurrent\futures\_base.py:456: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = None
+
+    def __get_result(self):
+        if self._exception:
+            try:
+>               raise self._exception
+
+C:\Users\dhzil\AppData\Local\Programs\Python\Python311\Lib\concurrent\futures\_base.py:401: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <anyio.from_thread.BlockingPortal object at 0x0000021F018C8110>
+func = <fastapi.applications.FastAPI object at 0x0000021F018782D0>
+args = ({'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra...ls>.receive at 0x0000021F01897D80>, <function _TestClientTransport.handle_request.<locals>.send at 0x0000021F018FC2C0>)
+kwargs = {}, future = <Future at 0x21f0190d450 state=finished raised NameError>
+
+    async def _call_func(
+        self,
+        func: Callable[[Unpack[PosArgsT]], Awaitable[T_Retval] | T_Retval],
+        args: tuple[Unpack[PosArgsT]],
+        kwargs: dict[str, Any],
+        future: Future[T_Retval],
+    ) -> None:
+        def callback(f: Future[T_Retval]) -> None:
+            if f.cancelled():
+                if self._event_loop_thread_id == get_ident():
+                    scope.cancel("the future was cancelled")
+                elif self._event_loop_thread_id is not None:
+                    self.call(scope.cancel, "the future was cancelled")
+    
+        try:
+            retval_or_awaitable = func(*args, **kwargs)
+            if isawaitable(retval_or_awaitable):
+                with CancelScope() as scope:
+                    future.add_done_callback(callback)
+>                   retval = await retval_or_awaitable
+
+C:\Users\dhzil\AppData\Local\Programs\Python\Python311\Lib\site-packages\anyio\from_thread.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <fastapi.applications.FastAPI object at 0x0000021F018782D0>
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function _TestClientTransport.handle_request.<locals>.send at 0x0000021F018FC2C0>
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if self.root_path:
+            scope["root_path"] = self.root_path
+>       await super().__call__(scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\fastapi\applications.py:1054: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <fastapi.applications.FastAPI object at 0x0000021F018782D0>
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function _TestClientTransport.handle_request.<locals>.send at 0x0000021F018FC2C0>
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        scope["app"] = self
+        if self.middleware_stack is None:
+            self.middleware_stack = self.build_middleware_stack()
+>       await self.middleware_stack(scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\applications.py:123: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.middleware.errors.ServerErrorMiddleware object at 0x0000021F7F652050>
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function _TestClientTransport.handle_request.<locals>.send at 0x0000021F018FC2C0>
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+    
+        response_started = False
+    
+        async def _send(message: Message) -> None:
+            nonlocal response_started, send
+    
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+    
+        try:
+            await self.app(scope, receive, _send)
+        except Exception as exc:
+            request = Request(scope)
+            if self.debug:
+                # In debug mode, return traceback responses.
+                response = self.debug_response(request, exc)
+            elif self.handler is None:
+                # Use our default 500 error handler.
+                response = self.error_response(request, exc)
+            else:
+                # Use an installed 500 error handler.
+                if is_async_callable(self.handler):
+                    response = await self.handler(request, exc)
+                else:
+                    response = await run_in_threadpool(self.handler, request, exc)
+    
+            if not response_started:
+                await response(scope, receive, send)
+    
+            # We always continue to raise the exception.
+            # This allows servers to log the error, or allows test clients
+            # to optionally raise the error within the test case.
+>           raise exc
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.middleware.errors.ServerErrorMiddleware object at 0x0000021F7F652050>
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function _TestClientTransport.handle_request.<locals>.send at 0x0000021F018FC2C0>
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+    
+        response_started = False
+    
+        async def _send(message: Message) -> None:
+            nonlocal response_started, send
+    
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+    
+        try:
+>           await self.app(scope, receive, _send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\errors.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.middleware.cors.CORSMiddleware object at 0x0000021F018F7F90>
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function ServerErrorMiddleware.__call__.<locals>._send at 0x0000021F018FC220>
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":  # pragma: no cover
+            await self.app(scope, receive, send)
+            return
+    
+        method = scope["method"]
+        headers = Headers(scope=scope)
+        origin = headers.get("origin")
+    
+        if origin is None:
+>           await self.app(scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\cors.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <starlette.middleware.exceptions.ExceptionMiddleware object at 0x0000021F018F7F10>
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function ServerErrorMiddleware.__call__.<locals>._send at 0x0000021F018FC220>
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] not in ("http", "websocket"):
+            await self.app(scope, receive, send)
+            return
+    
+        scope["starlette.exception_handlers"] = (
+            self._exception_handlers,
+            self._status_handlers,
+        )
+    
+        conn: typing.Union[Request, WebSocket]
+        if scope["type"] == "http":
+            conn = Request(scope, receive, send)
+        else:
+            conn = WebSocket(scope, receive, send)
+    
+>       await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\middleware\exceptions.py:62: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function ServerErrorMiddleware.__call__.<locals>._send at 0x0000021F018FC220>
+
+    async def wrapped_app(scope: Scope, receive: Receive, send: Send) -> None:
+        response_started = False
+    
+        async def sender(message: Message) -> None:
+            nonlocal response_started
+    
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+    
+        try:
+            await app(scope, receive, sender)
+        except Exception as exc:
+            handler = None
+    
+            if isinstance(exc, HTTPException):
+                handler = status_handlers.get(exc.status_code)
+    
+            if handler is None:
+                handler = _lookup_exception_handler(exception_handlers, exc)
+    
+            if handler is None:
+>               raise exc
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function ServerErrorMiddleware.__call__.<locals>._send at 0x0000021F018FC220>
+
+    async def wrapped_app(scope: Scope, receive: Receive, send: Send) -> None:
+        response_started = False
+    
+        async def sender(message: Message) -> None:
+            nonlocal response_started
+    
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+    
+        try:
+>           await app(scope, receive, sender)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <fastapi.routing.APIRouter object at 0x0000021F7FC816D0>
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000021F018FC5E0>
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """
+        The main entry point to the Router class.
+        """
+>       await self.middleware_stack(scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py:762: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <fastapi.routing.APIRouter object at 0x0000021F7FC816D0>
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000021F018FC5E0>
+
+    async def app(self, scope: Scope, receive: Receive, send: Send) -> None:
+        assert scope["type"] in ("http", "websocket", "lifespan")
+    
+        if "router" not in scope:
+            scope["router"] = self
+    
+        if scope["type"] == "lifespan":
+            await self.lifespan(scope, receive, send)
+            return
+    
+        partial = None
+    
+        for route in self.routes:
+            # Determine if any route matches the incoming scope,
+            # and hand over to the matching route if found.
+            match, child_scope = route.matches(scope)
+            if match == Match.FULL:
+                scope.update(child_scope)
+>               await route.handle(scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py:782: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = APIRoute(path='/obras/', name='crear_obra', methods=['POST'])
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000021F018FC5E0>
+
+    async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if self.methods and scope["method"] not in self.methods:
+            headers = {"Allow": ", ".join(self.methods)}
+            if "app" in scope:
+                raise HTTPException(status_code=405, headers=headers)
+            else:
+                response = PlainTextResponse(
+                    "Method Not Allowed", status_code=405, headers=headers
+                )
+            await response(scope, receive, send)
+        else:
+>           await self.app(scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py:297: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000021F018FC5E0>
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        request = Request(scope, receive, send)
+    
+        async def app(scope: Scope, receive: Receive, send: Send) -> None:
+            if is_async_callable(func):
+                response = await func(request)
+            else:
+                response = await run_in_threadpool(func, request)
+            await response(scope, receive, send)
+    
+>       await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000021F018FC5E0>
+
+    async def wrapped_app(scope: Scope, receive: Receive, send: Send) -> None:
+        response_started = False
+    
+        async def sender(message: Message) -> None:
+            nonlocal response_started
+    
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+    
+        try:
+            await app(scope, receive, sender)
+        except Exception as exc:
+            handler = None
+    
+            if isinstance(exc, HTTPException):
+                handler = status_handlers.get(exc.status_code)
+    
+            if handler is None:
+                handler = _lookup_exception_handler(exception_handlers, exc)
+    
+            if handler is None:
+>               raise exc
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000021F018FC5E0>
+
+    async def wrapped_app(scope: Scope, receive: Receive, send: Send) -> None:
+        response_started = False
+    
+        async def sender(message: Message) -> None:
+            nonlocal response_started
+    
+            if message["type"] == "http.response.start":
+                response_started = True
+            await send(message)
+    
+        try:
+>           await app(scope, receive, sender)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\_exception_handler.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+scope = {'app': <fastapi.applications.FastAPI object at 0x0000021F018782D0>, 'client': None, 'endpoint': <function crear_obra at 0x0000021F01896B60>, 'extensions': {'http.response.debug': {}}, ...}
+receive = <function _TestClientTransport.handle_request.<locals>.receive at 0x0000021F01897D80>
+send = <function wrap_app_handling_exceptions.<locals>.wrapped_app.<locals>.sender at 0x0000021F018FC7C0>
+
+    async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        if is_async_callable(func):
+>           response = await func(request)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\starlette\routing.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+request = <starlette.requests.Request object at 0x0000021F0190DB10>
+
+    async def app(request: Request) -> Response:
+        exception_to_reraise: Optional[Exception] = None
+        response: Union[Response, None] = None
+        async with AsyncExitStack() as async_exit_stack:
+            # TODO: remove this scope later, after a few releases
+            # This scope fastapi_astack is no longer used by FastAPI, kept for
+            # compatibility, just in case
+            request.scope["fastapi_astack"] = async_exit_stack
+            try:
+                body: Any = None
+                if body_field:
+                    if is_body_form:
+                        body = await request.form()
+                        async_exit_stack.push_async_callback(body.close)
+                    else:
+                        body_bytes = await request.body()
+                        if body_bytes:
+                            json_body: Any = Undefined
+                            content_type_value = request.headers.get("content-type")
+                            if not content_type_value:
+                                json_body = await request.json()
+                            else:
+                                message = email.message.Message()
+                                message["content-type"] = content_type_value
+                                if message.get_content_maintype() == "application":
+                                    subtype = message.get_content_subtype()
+                                    if subtype == "json" or subtype.endswith("+json"):
+                                        json_body = await request.json()
+                            if json_body != Undefined:
+                                body = json_body
+                            else:
+                                body = body_bytes
+            except json.JSONDecodeError as e:
+                validation_error = RequestValidationError(
+                    [
+                        {
+                            "type": "json_invalid",
+                            "loc": ("body", e.pos),
+                            "msg": "JSON decode error",
+                            "input": {},
+                            "ctx": {"error": e.msg},
+                        }
+                    ],
+                    body=e.doc,
+                )
+                exception_to_reraise = validation_error
+                raise validation_error from e
+            except HTTPException as e:
+                exception_to_reraise = e
+                raise
+            except Exception as e:
+                http_error = HTTPException(
+                    status_code=400, detail="There was an error parsing the body"
+                )
+                exception_to_reraise = http_error
+                raise http_error from e
+            try:
+                solved_result = await solve_dependencies(
+                    request=request,
+                    dependant=dependant,
+                    body=body,
+                    dependency_overrides_provider=dependency_overrides_provider,
+                    async_exit_stack=async_exit_stack,
+                )
+                values, errors, background_tasks, sub_response, _ = solved_result
+            except Exception as e:
+                exception_to_reraise = e
+>               raise e
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py:285: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+request = <starlette.requests.Request object at 0x0000021F0190DB10>
+
+    async def app(request: Request) -> Response:
+        exception_to_reraise: Optional[Exception] = None
+        response: Union[Response, None] = None
+        async with AsyncExitStack() as async_exit_stack:
+            # TODO: remove this scope later, after a few releases
+            # This scope fastapi_astack is no longer used by FastAPI, kept for
+            # compatibility, just in case
+            request.scope["fastapi_astack"] = async_exit_stack
+            try:
+                body: Any = None
+                if body_field:
+                    if is_body_form:
+                        body = await request.form()
+                        async_exit_stack.push_async_callback(body.close)
+                    else:
+                        body_bytes = await request.body()
+                        if body_bytes:
+                            json_body: Any = Undefined
+                            content_type_value = request.headers.get("content-type")
+                            if not content_type_value:
+                                json_body = await request.json()
+                            else:
+                                message = email.message.Message()
+                                message["content-type"] = content_type_value
+                                if message.get_content_maintype() == "application":
+                                    subtype = message.get_content_subtype()
+                                    if subtype == "json" or subtype.endswith("+json"):
+                                        json_body = await request.json()
+                            if json_body != Undefined:
+                                body = json_body
+                            else:
+                                body = body_bytes
+            except json.JSONDecodeError as e:
+                validation_error = RequestValidationError(
+                    [
+                        {
+                            "type": "json_invalid",
+                            "loc": ("body", e.pos),
+                            "msg": "JSON decode error",
+                            "input": {},
+                            "ctx": {"error": e.msg},
+                        }
+                    ],
+                    body=e.doc,
+                )
+                exception_to_reraise = validation_error
+                raise validation_error from e
+            except HTTPException as e:
+                exception_to_reraise = e
+                raise
+            except Exception as e:
+                http_error = HTTPException(
+                    status_code=400, detail="There was an error parsing the body"
+                )
+                exception_to_reraise = http_error
+                raise http_error from e
+            try:
+>               solved_result = await solve_dependencies(
+                    request=request,
+                    dependant=dependant,
+                    body=body,
+                    dependency_overrides_provider=dependency_overrides_provider,
+                    async_exit_stack=async_exit_stack,
+                )
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\fastapi\routing.py:275: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def solve_dependencies(
+        *,
+        request: Union[Request, WebSocket],
+        dependant: Dependant,
+        body: Optional[Union[Dict[str, Any], FormData]] = None,
+        background_tasks: Optional[StarletteBackgroundTasks] = None,
+        response: Optional[Response] = None,
+        dependency_overrides_provider: Optional[Any] = None,
+        dependency_cache: Optional[Dict[Tuple[Callable[..., Any], Tuple[str]], Any]] = None,
+        async_exit_stack: AsyncExitStack,
+    ) -> Tuple[
+        Dict[str, Any],
+        List[Any],
+        Optional[StarletteBackgroundTasks],
+        Response,
+        Dict[Tuple[Callable[..., Any], Tuple[str]], Any],
+    ]:
+        values: Dict[str, Any] = {}
+        errors: List[Any] = []
+        if response is None:
+            response = Response()
+            del response.headers["content-length"]
+            response.status_code = None  # type: ignore
+        dependency_cache = dependency_cache or {}
+        sub_dependant: Dependant
+        for sub_dependant in dependant.dependencies:
+            sub_dependant.call = cast(Callable[..., Any], sub_dependant.call)
+            sub_dependant.cache_key = cast(
+                Tuple[Callable[..., Any], Tuple[str]], sub_dependant.cache_key
+            )
+            call = sub_dependant.call
+            use_sub_dependant = sub_dependant
+            if (
+                dependency_overrides_provider
+                and dependency_overrides_provider.dependency_overrides
+            ):
+                original_call = sub_dependant.call
+                call = getattr(
+                    dependency_overrides_provider, "dependency_overrides", {}
+                ).get(original_call, original_call)
+                use_path: str = sub_dependant.path  # type: ignore
+                use_sub_dependant = get_dependant(
+                    path=use_path,
+                    call=call,
+                    name=sub_dependant.name,
+                    security_scopes=sub_dependant.security_scopes,
+                )
+    
+            solved_result = await solve_dependencies(
+                request=request,
+                dependant=use_sub_dependant,
+                body=body,
+                background_tasks=background_tasks,
+                response=response,
+                dependency_overrides_provider=dependency_overrides_provider,
+                dependency_cache=dependency_cache,
+                async_exit_stack=async_exit_stack,
+            )
+            (
+                sub_values,
+                sub_errors,
+                background_tasks,
+                _,  # the subdependency returns the same response we have
+                sub_dependency_cache,
+            ) = solved_result
+            dependency_cache.update(sub_dependency_cache)
+            if sub_errors:
+                errors.extend(sub_errors)
+                continue
+            if sub_dependant.use_cache and sub_dependant.cache_key in dependency_cache:
+                solved = dependency_cache[sub_dependant.cache_key]
+            elif is_gen_callable(call) or is_async_gen_callable(call):
+>               solved = await solve_generator(
+                    call=call, stack=async_exit_stack, sub_values=sub_values
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\fastapi\dependencies\utils.py:594: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def solve_generator(
+        *, call: Callable[..., Any], stack: AsyncExitStack, sub_values: Dict[str, Any]
+    ) -> Any:
+        if is_gen_callable(call):
+            cm = contextmanager_in_threadpool(contextmanager(call)(**sub_values))
+        elif is_async_gen_callable(call):
+            cm = asynccontextmanager(call)(**sub_values)
+>       return await stack.enter_async_context(cm)
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\fastapi\dependencies\utils.py:519: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <contextlib.AsyncExitStack object at 0x0000021F0190DB90>
+cm = <contextlib._AsyncGeneratorContextManager object at 0x0000021F0190E050>
+
+    async def enter_async_context(self, cm):
+        """Enters the supplied async context manager.
+    
+        If successful, also pushes its __aexit__ method as a callback and
+        returns the result of the __aenter__ method.
+        """
+        cls = type(cm)
+        try:
+            _enter = cls.__aenter__
+            _exit = cls.__aexit__
+        except AttributeError:
+            raise TypeError(f"'{cls.__module__}.{cls.__qualname__}' object does "
+                            f"not support the asynchronous context manager protocol"
+                           ) from None
+>       result = await _enter(cm)
+
+C:\Users\dhzil\AppData\Local\Programs\Python\Python311\Lib\contextlib.py:635: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <contextlib._AsyncGeneratorContextManager object at 0x0000021F0190E050>
+
+    async def __aenter__(self):
+        # do not keep args and kwds alive unnecessarily
+        # they are only needed for recreation, which is not possible anymore
+        del self.args, self.kwds, self.func
+        try:
+>           return await anext(self.gen)
+
+C:\Users\dhzil\AppData\Local\Programs\Python\Python311\Lib\contextlib.py:204: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cm = <contextlib._GeneratorContextManager object at 0x0000021F0190DFD0>
+
+    @asynccontextmanager
+    async def contextmanager_in_threadpool(
+        cm: ContextManager[_T],
+    ) -> AsyncGenerator[_T, None]:
+        # blocking __exit__ from running waiting on a free thread
+        # can create race conditions/deadlocks if the context manager itself
+        # has its own internal pool (e.g. a database connection pool)
+        # to avoid this we let __exit__ run without a capacity limit
+        # since we're creating a new limiter for each call, any non-zero limit
+        # works (1 is arbitrary)
+        exit_limiter = CapacityLimiter(1)
+        try:
+            yield await run_in_threadpool(cm.__enter__)
+        except Exception as e:
+            ok = bool(
+                await anyio.to_thread.run_sync(
+                    cm.__exit__, type(e), e, None, limiter=exit_limiter
+                )
+            )
+            if not ok:
+>               raise e
+E               NameError: name 'database' is not defined
+
+C:\Users\dhzil\AppData\Roaming\Python\Python311\site-packages\fastapi\concurrency.py:35: NameError
+=========================== short test summary info ===========================
+FAILED tests/test_api.py::TestObras::test_crear_obra - NameError: name 'datab...
+============================== 1 failed in 2.70s ==============================

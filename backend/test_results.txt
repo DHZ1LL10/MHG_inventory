@@ -1,0 +1,107 @@
+============================= test session starts =============================
+collecting ... collected 20 items
+
+tests/test_api.py::TestMateriales::test_leer_materiales_vacio PASSED     [  5%]
+tests/test_api.py::TestMateriales::test_crear_material_valido FAILED     [ 10%]
+tests/test_api.py::TestMateriales::test_crear_material_sin_nombre FAILED [ 15%]
+tests/test_api.py::TestMateriales::test_leer_material_existente PASSED   [ 20%]
+tests/test_api.py::TestMateriales::test_leer_material_inexistente PASSED [ 25%]
+tests/test_api.py::TestMateriales::test_actualizar_stock FAILED          [ 30%]
+tests/test_api.py::TestMovimientos::test_registrar_entrada_valida FAILED [ 35%]
+tests/test_api.py::TestMovimientos::test_registrar_salida_valida FAILED  [ 40%]
+tests/test_api.py::TestMovimientos::test_salida_sin_stock_suficiente FAILED [ 45%]
+tests/test_api.py::TestMovimientos::test_movimiento_con_material_inexistente FAILED [ 50%]
+tests/test_api.py::TestMovimientos::test_calcular_valor_monetario FAILED [ 55%]
+tests/test_api.py::TestMovimientos::test_leer_movimientos_paginados FAILED [ 60%]
+tests/test_api.py::TestAuth::test_login_valido PASSED                    [ 65%]
+tests/test_api.py::TestAuth::test_login_codigo_invalido PASSED           [ 70%]
+tests/test_api.py::TestAuth::test_crear_dispositivo_admin FAILED         [ 75%]
+tests/test_api.py::TestAuth::test_eliminar_dispositivo FAILED            [ 80%]
+tests/test_api.py::TestValidacion::test_cantidad_negativa_rechazada PASSED [ 85%]
+tests/test_api.py::TestValidacion::test_precio_venta_menor_que_costo FAILED [ 90%]
+tests/test_api.py::TestObras::test_crear_obra FAILED                     [ 95%]
+tests/test_api.py::TestObras::test_listar_obras PASSED                   [100%]
+
+================================== FAILURES ===================================
+__________________ TestMateriales.test_crear_material_valido __________________
+tests\test_api.py:126: in test_crear_material_valido
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+________________ TestMateriales.test_crear_material_sin_nombre ________________
+tests\test_api.py:142: in test_crear_material_sin_nombre
+    assert response.status_code == 422  # Validation error
+E   assert 401 == 422
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+____________________ TestMateriales.test_actualizar_stock _____________________
+tests\test_api.py:162: in test_actualizar_stock
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+________________ TestMovimientos.test_registrar_entrada_valida ________________
+tests\test_api.py:184: in test_registrar_entrada_valida
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+________________ TestMovimientos.test_registrar_salida_valida _________________
+tests\test_api.py:202: in test_registrar_salida_valida
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+______________ TestMovimientos.test_salida_sin_stock_suficiente _______________
+tests\test_api.py:218: in test_salida_sin_stock_suficiente
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+__________ TestMovimientos.test_movimiento_con_material_inexistente ___________
+tests\test_api.py:231: in test_movimiento_con_material_inexistente
+    assert response.status_code == 404
+E   assert 401 == 404
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+________________ TestMovimientos.test_calcular_valor_monetario ________________
+tests\test_api.py:243: in test_calcular_valor_monetario
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+_______________ TestMovimientos.test_leer_movimientos_paginados _______________
+tests\test_api.py:264: in test_leer_movimientos_paginados
+    assert len(response.json()) == 20
+E   assert 0 == 20
+E    +  where 0 = len([])
+E    +    where [] = <bound method Response.json of <Response [200 OK]>>()
+E    +      where <bound method Response.json of <Response [200 OK]>> = <Response [200 OK]>.json
+____________________ TestAuth.test_crear_dispositivo_admin ____________________
+tests\test_api.py:293: in test_crear_dispositivo_admin
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+_____________________ TestAuth.test_eliminar_dispositivo ______________________
+tests\test_api.py:301: in test_eliminar_dispositivo
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+______________ TestValidacion.test_precio_venta_menor_que_costo _______________
+tests\test_api.py:341: in test_precio_venta_menor_que_costo
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+__________________________ TestObras.test_crear_obra __________________________
+tests\test_api.py:358: in test_crear_obra
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = <Response [401 Unauthorized]>.status_code
+=========================== short test summary info ===========================
+FAILED tests/test_api.py::TestMateriales::test_crear_material_valido - assert...
+FAILED tests/test_api.py::TestMateriales::test_crear_material_sin_nombre - as...
+FAILED tests/test_api.py::TestMateriales::test_actualizar_stock - assert 401 ...
+FAILED tests/test_api.py::TestMovimientos::test_registrar_entrada_valida - as...
+FAILED tests/test_api.py::TestMovimientos::test_registrar_salida_valida - ass...
+FAILED tests/test_api.py::TestMovimientos::test_salida_sin_stock_suficiente
+FAILED tests/test_api.py::TestMovimientos::test_movimiento_con_material_inexistente
+FAILED tests/test_api.py::TestMovimientos::test_calcular_valor_monetario - as...
+FAILED tests/test_api.py::TestMovimientos::test_leer_movimientos_paginados - ...
+FAILED tests/test_api.py::TestAuth::test_crear_dispositivo_admin - assert 401...
+FAILED tests/test_api.py::TestAuth::test_eliminar_dispositivo - assert 401 ==...
+FAILED tests/test_api.py::TestValidacion::test_precio_venta_menor_que_costo
+FAILED tests/test_api.py::TestObras::test_crear_obra - assert 401 == 200
+======================== 13 failed, 7 passed in 5.93s =========================

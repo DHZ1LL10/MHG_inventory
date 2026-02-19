@@ -1,142 +1,101 @@
-// config.js - Configuración centralizada del sistema MHG
-// Coloca este archivo en: frontend/js/config.js
+// --- GESTIÓN DE CONFIGURACIÓN CENTRALIZADA ---
 
 const CONFIG = {
-    // 🎯 CONFIGURACIÓN AUTOMÁTICA DE API
+    // 1. Obtener la URL de la API
     getApiUrl() {
-        // 1. Intenta obtener la IP guardada
-        const savedIp = localStorage.getItem('mhg_backend_ip');
-        if (savedIp) {
-            return `http://${savedIp}:8000`;
-        }
-        
-        // 2. Detecta automáticamente según el hostname
+        // Primero: Busca si el usuario guardó una manual
+        const manualIp = localStorage.getItem('mhg_api_url');
+        if (manualIp) return manualIp;
+
+        // Segundo: Si estamos en localhost, usa localhost
         const hostname = window.location.hostname;
-        
-        // Si estamos en localhost, usa la IP de red local por defecto
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-            return 'http://192.168.0.49:8000';
+            return 'http://localhost:8000';
         }
-        
-        // Si estamos en una tablet en red local, usa esa IP
-        if (hostname.startsWith('192.168.') || hostname.startsWith('10.0.')) {
-            return `http://${hostname}:8000`;
-        }
-        
-        // Fallback a tu IP actual
-        return 'http://192.168.0.49:8000';
+
+        // Tercero: Intenta adivinar (fallback)
+        return `http://${hostname}:8000`;
     },
-    
-    // 🔐 Configuración de autenticación
-    AUTH_STORAGE_KEY: 'mhg_user_session',
-    PIN_LENGTH: 6,
-    
-    // ⚙️ Configuración de solicitudes HTTP
-    REQUEST_TIMEOUT: 10000,
-    
-    // 🎨 Configuración de UI
-    TOAST_DURATION: 3000,
-    
-    // 📊 Configuración de inventario
-    DEFAULT_MIN_STOCK: 5,
-    
-    // 🔄 Inicializar
+
+    // 2. Inicializar
     init() {
         this.API_BASE_URL = this.getApiUrl();
-        console.log('✅ Sistema MHG inicializado');
-        console.log('📡 Backend configurado en:', this.API_BASE_URL);
-    },
-    
-    // 🛠️ Cambiar IP del backend manualmente
-    setBackendIp(ip) {
-        localStorage.setItem('mhg_backend_ip', ip);
-        this.API_BASE_URL = `http://${ip}:8000`;
-        console.log('✅ IP del backend actualizada:', this.API_BASE_URL);
-        return this.API_BASE_URL;
-    },
-    
-    // 🧪 Probar conexión con el backend
-    async testConnection() {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-            
-            const response = await fetch(`${this.API_BASE_URL}/materiales/`, {
-                method: 'GET',
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                console.log('✅ Conexión exitosa con el backend');
-                return { success: true, message: 'Conectado correctamente' };
-            } else {
-                console.error('❌ Error HTTP:', response.status);
-                return { success: false, message: `Error HTTP ${response.status}` };
-            }
-        } catch (error) {
-            console.error('❌ Error de conexión:', error.message);
-            return { 
-                success: false, 
-                message: error.name === 'AbortError' ? 'Timeout' : 'Sin conexión'
-            };
-        }
+        console.log('🔌 MHG Configurado en:', this.API_BASE_URL);
     }
 };
 
-// Inicializar automáticamente
+// Inicializamos de inmediato
 CONFIG.init();
 
-// Exportar globalmente
-window.CONFIG = CONFIG;
+// --- LÓGICA DE LA PANTALLA DE CONFIGURACIÓN (Solo funciona si existe el formulario) ---
+document.addEventListener("DOMContentLoaded", () => {
+    const configForm = document.getElementById('configForm');
 
-// 🔍 Herramientas de diagnóstico (para la consola del navegador)
-window.mhgDiag = {
-    info() {
-        console.log('═══════════════════════════════════════');
-        console.log('📊 DIAGNÓSTICO DEL SISTEMA MHG');
-        console.log('═══════════════════════════════════════');
-        console.log('🌐 URL actual:', window.location.href);
-        console.log('🖥️  Hostname:', window.location.hostname);
-        console.log('📡 Backend URL:', CONFIG.API_BASE_URL);
-        console.log('💾 IP guardada:', localStorage.getItem('mhg_backend_ip'));
-        console.log('👤 Usuario:', localStorage.getItem('usuarioNombre'));
-        console.log('🔐 Rol:', localStorage.getItem('usuarioRol'));
-        console.log('═══════════════════════════════════════');
-    },
-    
-    async probar() {
-        console.log('🧪 Probando conexión con el backend...');
-        const result = await CONFIG.testConnection();
-        console.log(result.success ? '✅' : '❌', result.message);
-        return result;
-    },
-    
-    cambiarIp(nuevaIp) {
-        console.log('🔄 Cambiando IP del backend...');
-        CONFIG.setBackendIp(nuevaIp);
-        console.log('✅ Nueva IP configurada:', nuevaIp);
-        console.log('🔄 Recarga la página para aplicar los cambios');
-    },
-    
-    ayuda() {
-        console.log('═══════════════════════════════════════');
-        console.log('🆘 COMANDOS DISPONIBLES');
-        console.log('═══════════════════════════════════════');
-        console.log('mhgDiag.info()           - Ver configuración actual');
-        console.log('mhgDiag.probar()         - Probar conexión al backend');
-        console.log('mhgDiag.cambiarIp("IP")  - Cambiar IP del backend');
-        console.log('mhgDiag.reset()          - Restablecer configuración');
-        console.log('═══════════════════════════════════════');
-    },
-    
-    reset() {
-        localStorage.removeItem('mhg_backend_ip');
-        console.log('✅ Configuración restablecida');
-        console.log('🔄 Recarga la página');
+    if (configForm) {
+        const inputUrl = document.getElementById('apiUrlInput');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        // Poner el valor actual en el input
+        inputUrl.value = CONFIG.API_BASE_URL;
+
+        // Función para probar conexión real
+        async function probarConexion(url) {
+            statusText.innerText = "Probando conexión...";
+            statusText.style.color = "#FFD700"; // Amarillo
+            statusDot.style.backgroundColor = "#FFD700";
+
+            try {
+                // Intentamos conectar al endpoint de documentación (es ligero)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 seg timeout
+
+                const res = await fetch(`${url}/docs`, {
+                    method: 'HEAD',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    statusDot.style.backgroundColor = "#00C853"; // Verde
+                    statusText.innerText = "¡Conexión Exitosa!";
+                    statusText.style.color = "#00C853";
+                    return true;
+                }
+            } catch (e) {
+                console.error("Fallo conexión:", e);
+            }
+
+            statusDot.style.backgroundColor = "#FF5252"; // Rojo
+            statusText.innerText = "No se encuentra el servidor";
+            statusText.style.color = "#FF5252";
+            return false;
+        }
+
+        // Evento del botón Guardar
+        configForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let url = inputUrl.value.trim().replace(/\/$/, ""); // Quitar espacios y slash final
+
+            if (!url.startsWith("http")) {
+                url = "http://" + url;
+            }
+
+            const exito = await probarConexion(url);
+
+            if (exito) {
+                localStorage.setItem("mhg_api_url", url); // Guardamos la nueva IP
+                alert("✅ Configuración Guardada. Redirigiendo...");
+                window.location.href = "index.html";
+            } else {
+                if (confirm("⚠️ No pudimos conectar con esa IP. ¿Guardar de todos modos?")) {
+                    localStorage.setItem("mhg_api_url", url);
+                    window.location.href = "index.html";
+                }
+            }
+        });
+
+        // Probar conexión automáticamente al abrir la página
+        probarConexion(inputUrl.value);
     }
-};
-
-// Mostrar ayuda en la consola
-console.log('💡 Escribe mhgDiag.ayuda() para ver comandos de diagnóstico');
+});

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración MHG</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background-color: #1E1E1E;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #BB86FC;
+        }
+
+        p {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background-color: #2C2C2C;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1em;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #BB86FC;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #BB86FC;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            background-color: #a370db;
+        }
+
+        .status-box {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #252525;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: gray;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .back-link:hover {
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>🛠️ Conexión del Servidor</h2>
+        <p>Configura la dirección IP donde está corriendo el sistema Backend.</p>
+
+        <form id="configForm">
+            <div class="input-group">
+                <label>Dirección API (Ej: http://localhost:8000)</label>
+                <input type="text" id="apiUrlInput" placeholder="http://192.168.X.X:8000">
+            </div>
+
+            <div class="status-box">
+                <div class="dot" id="statusDot"></div>
+                <span id="statusText">Verificando...</span>
+            </div>
+            <br>
+            <button type="submit">💾 Guardar Configuración</button>
+        </form>
+
+        <a href="index.html" class="back-link">← Volver al Login</a>
+    </div>
+
+    <script src="js/config.js"></script>
+</body>
+
+</html>

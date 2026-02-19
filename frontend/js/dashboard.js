@@ -1,4 +1,4 @@
-// FORZAMOS LOCALHOST PARA EVITAR ERRORES DE RED
+// USA LA CONFIGURACIÓN INTELIGENTE (No hardcodeada)
 const API_URL = "http://localhost:8000";
 
 // --- 1. SEGURIDAD Y SESIÓN ---
@@ -34,43 +34,36 @@ const CATALOGO = {
     ]
 };
 
-// --- 3. PERMISOS Y ROLES (SEGURIDAD) ---
+// --- 3. PERMISOS Y ROLES ---
 function aplicarPermisos() {
     console.log("🔒 Aplicando permisos para rol:", usuarioRol);
-
     const btnAdd = document.getElementById('btnNuevoMaterial');
     const btnAdmin = document.getElementById('btnAdminPanel');
     const seccionBitacora = document.getElementById('cardBitacora');
 
-    // --- ESCENARIO 1: ES ADMIN ---
     if (usuarioRol === "ADMIN") {
         if (btnAdd) btnAdd.style.display = 'block';
         if (btnAdmin) btnAdmin.style.display = 'block';
         if (seccionBitacora) seccionBitacora.style.display = 'block';
-    }
-    // --- ESCENARIO 2: NO ES ADMIN ---
-    else {
+    } else {
         if (btnAdd) btnAdd.style.display = 'none';
         if (btnAdmin) btnAdmin.style.display = 'none';
         if (seccionBitacora) {
             seccionBitacora.style.display = 'none';
-            seccionBitacora.innerHTML = ''; // Vaciar por seguridad
+            seccionBitacora.innerHTML = '';
         }
     }
 }
 
-// --- 4. PANEL DIVIDIDO (NUEVO MATERIAL) ---
+// --- 4. PANEL DIVIDIDO ---
 function activarPanel(tipo) {
     const inputId = tipo === 'categoria' ? 'newCategoria' : 'newUnidad';
     panelActivo = inputId;
-
     document.getElementById('newCategoria').style.borderColor = '#444';
     document.getElementById('newUnidad').style.borderColor = '#444';
     document.getElementById(inputId).style.borderColor = 'white';
-
     document.getElementById('panelTitle').innerText = tipo === 'categoria' ? 'Seleccionar Categoría' : 'Seleccionar Unidad';
     document.getElementById('panelSearch').value = '';
-
     const datos = tipo === 'categoria' ? CATALOGO.categorias : CATALOGO.unidades;
     renderizarGrid(datos);
 }
@@ -79,7 +72,6 @@ function renderizarGrid(datos, filtro = "") {
     const grid = document.getElementById('panelGrid');
     if (!grid) return;
     grid.innerHTML = "";
-
     let encontrados = false;
     datos.forEach(grupo => {
         const opciones = grupo.opciones.filter(op => op.toLowerCase().includes(filtro.toLowerCase()));
@@ -89,7 +81,6 @@ function renderizarGrid(datos, filtro = "") {
             titulo.className = 'option-group-title';
             titulo.innerText = grupo.grupo;
             grid.appendChild(titulo);
-
             const divGrid = document.createElement('div');
             divGrid.className = 'option-grid';
             opciones.forEach(op => {
@@ -121,7 +112,7 @@ function seleccionarOpcion(valor) {
     }
 }
 
-// --- 5. CARGA DE INVENTARIO (TABLA O GRID) ---
+// --- 5. CARGA DE INVENTARIO ---
 async function cargarMateriales() {
     try {
         const response = await fetch(`${API_URL}/materiales/`);
@@ -137,7 +128,6 @@ async function cargarMateriales() {
 
         actualizarKPIs(materiales);
 
-        // Solo Admin ve bitácora y finanzas
         if (usuarioRol === "ADMIN") {
             cargarMovimientos();
             actualizarFinanzasAdmin(materiales);
@@ -147,11 +137,10 @@ async function cargarMateriales() {
         const tableContainer = document.querySelector('table');
         const gridContainer = document.getElementById('gridMateriales');
 
-        // LIMPIEZA
         tbody.innerHTML = '';
         if (gridContainer) gridContainer.innerHTML = '';
 
-        // --- MODO ADMIN (TABLA CLÁSICA) ---
+        // MODO ADMIN
         if (usuarioRol === "ADMIN") {
             tableContainer.style.display = 'table';
             if (gridContainer) gridContainer.style.display = 'none';
@@ -179,32 +168,26 @@ async function cargarMateriales() {
                 tbody.innerHTML += row;
             });
         }
-
-        // --- MODO OPERATIVO (TARJETAS GRANDES) ---
+        // MODO OPERATIVO
         else {
             tableContainer.style.display = 'none';
             if (gridContainer) gridContainer.style.display = 'grid';
 
             materialesVisibles.forEach(mat => {
                 let bordeColor = '#444';
-                if (mat.cantidad <= mat.min_stock) bordeColor = '#FF6B6B'; // Rojo si falta
+                if (mat.cantidad <= mat.min_stock) bordeColor = '#FF6B6B';
 
                 let centroContenido = '';
-
                 if (usuarioRol === "EXHIBICION") {
-                    // Muestra PRECIO
                     const precio = mat.precio_venta ? `$${mat.precio_venta}` : 'N/A';
                     centroContenido = `
                         <div style="font-size:0.8em; color:#888; text-align:center;">Precio Público</div>
                         <div class="card-price">${precio}</div>
-                        <div style="font-size:0.9em; color:white; text-align:center; margin-top:5px;">Disp: ${mat.cantidad}</div>
-                    `;
+                        <div style="font-size:0.9em; color:white; text-align:center; margin-top:5px;">Disp: ${mat.cantidad}</div>`;
                 } else {
-                    // Muestra STOCK (Taller)
                     centroContenido = `
                         <div class="card-qty-big" style="color: ${mat.cantidad <= mat.min_stock ? '#FF6B6B' : 'white'}">${mat.cantidad}</div>
-                        <div style="text-align:center; color:#888; font-size:0.8em;">${mat.unidad}</div>
-                    `;
+                        <div style="text-align:center; color:#888; font-size:0.8em;">${mat.unidad}</div>`;
                 }
 
                 const card = `
@@ -251,27 +234,22 @@ async function cargarMovimientos() {
                     <td style="padding:10px; color:#aaa;">${mov.motivo}</td>
                 </tr>`;
         });
-    } catch (e) {
-        console.error("Error cargando movimientos:", e);
-    }
+    } catch (e) { console.error("Error cargando movimientos:", e); }
 }
 
-// --- 6. SALIDAS Y ENTRADAS INTELIGENTES (BLINDADAS) ---
+// --- 6. SALIDAS Y ENTRADAS (MODIFICADAS CON SEGURIDAD) ---
 async function seleccionarTipoSalida(tipo) {
     document.querySelectorAll('#salidaModal .btn-option').forEach(btn => { btn.style.borderColor = "#444"; btn.style.backgroundColor = "#2A2A2A"; });
     document.getElementById(`btn${tipo}`).style.borderColor = "white";
     document.getElementById(`btn${tipo}`).style.backgroundColor = "#444";
-
     const container = document.getElementById('inputDinamicoContainer');
     const label = document.getElementById('labelDinamico');
     const select = document.getElementById('selectObraDinamico');
     const input = document.getElementById('inputTextoDinamico');
-
     container.style.display = 'block';
     select.style.display = tipo === 'Obra' ? 'block' : 'none';
     input.style.display = tipo === 'Obra' ? 'none' : 'block';
     label.innerText = tipo === 'Obra' ? "¿Para qué obra?" : "Detalle:";
-
     if (tipo === 'Obra' && select.options.length <= 0) {
         const res = await fetch(`${API_URL}/obras/`);
         const obras = await res.json();
@@ -291,21 +269,13 @@ async function abrirSalida(id, nombre) {
 async function confirmarSalida() {
     let cantidadInput = document.getElementById('salidaCantidad').value;
     let cantidad = parseInt(cantidadInput);
+    if (!cantidad || cantidad <= 0) return showToast("⚠️ Error: Cantidad inválida");
 
-    if (!cantidad || cantidad <= 0) return showToast("⚠️ Error: La cantidad debe ser mayor a 0");
-
-    // Validar Stock
     const materialActual = cacheMateriales.find(m => m.id === idMaterialSeleccionado);
-    if (materialActual && cantidad > materialActual.cantidad) {
-        return showToast(`⚠️ Error: Solo tienes ${materialActual.cantidad} disponibles`);
-    }
+    if (materialActual && cantidad > materialActual.cantidad) return showToast(`⚠️ Error: Solo tienes ${materialActual.cantidad}`);
 
     const select = document.getElementById('selectObraDinamico');
     const input = document.getElementById('inputTextoDinamico');
-
-    if (select.style.display === 'none' && input.style.display === 'none') {
-        return showToast("⚠️ Error: Selecciona el destino");
-    }
 
     let motivo = "";
     if (select.style.display !== 'none') {
@@ -318,9 +288,13 @@ async function confirmarSalida() {
         motivo = `${tipoAccion}: ${input.value}`;
     }
 
-    await fetch(`${API_URL}/movimientos/`, {
+    // 🔒 FETCH CON SEGURIDAD (HEADER)
+    const res = await fetch(`${API_URL}/movimientos/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'x-usuario': usuarioActual // <--- LLAVE DE SEGURIDAD
+        },
         body: JSON.stringify({
             material_id: idMaterialSeleccionado,
             cantidad: Math.abs(cantidad),
@@ -330,9 +304,13 @@ async function confirmarSalida() {
         })
     });
 
-    document.getElementById('salidaModal').style.display = 'none';
-    cargarMateriales();
-    showToast("📤 Salida Registrada");
+    if (res.ok) {
+        document.getElementById('salidaModal').style.display = 'none';
+        cargarMateriales();
+        showToast("📤 Salida Registrada");
+    } else {
+        showToast("⚠️ Error de Permisos o Servidor");
+    }
 }
 
 async function abrirEntrada(id, nombre) {
@@ -347,15 +325,12 @@ async function seleccionarTipoEntrada(tipo) {
     document.querySelectorAll('#entradaModal .btn-option').forEach(btn => { btn.style.borderColor = "#444"; btn.style.backgroundColor = "#2A2A2A"; });
     document.getElementById(`btn${tipo}`).style.borderColor = "white";
     document.getElementById(`btn${tipo}`).style.backgroundColor = "#444";
-
     const container = document.getElementById('inputEntradaContainer');
     const select = document.getElementById('selectObraEntrada');
     const input = document.getElementById('inputTextoEntrada');
-
     container.style.display = 'block';
     select.style.display = tipo === 'Devolucion' ? 'block' : 'none';
     input.style.display = tipo === 'Devolucion' ? 'none' : 'block';
-
     if (tipo === 'Devolucion' && select.options.length <= 0) {
         const res = await fetch(`${API_URL}/obras/`);
         const obras = await res.json();
@@ -367,16 +342,10 @@ async function seleccionarTipoEntrada(tipo) {
 async function confirmarEntrada() {
     let cantidadInput = document.getElementById('entradaCantidad').value;
     let cantidad = parseInt(cantidadInput);
-
-    if (!cantidad || cantidad <= 0) return showToast("⚠️ Error: La cantidad debe ser mayor a 0");
+    if (!cantidad || cantidad <= 0) return showToast("⚠️ Error: Cantidad inválida");
 
     const select = document.getElementById('selectObraEntrada');
     const input = document.getElementById('inputTextoEntrada');
-
-    if (select.style.display === 'none' && input.style.display === 'none') {
-        return showToast("⚠️ Error: Selecciona el origen");
-    }
-
     let motivo = "";
     if (select.style.display !== 'none') {
         if (!select.value) return showToast("⚠️ Error: Selecciona la Obra");
@@ -386,9 +355,13 @@ async function confirmarEntrada() {
         motivo = "Compra: " + input.value;
     }
 
-    await fetch(`${API_URL}/movimientos/`, {
+    // 🔒 FETCH CON SEGURIDAD (HEADER)
+    const res = await fetch(`${API_URL}/movimientos/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'x-usuario': usuarioActual // <--- LLAVE DE SEGURIDAD
+        },
         body: JSON.stringify({
             material_id: idMaterialSeleccionado,
             cantidad: Math.abs(cantidad),
@@ -398,12 +371,16 @@ async function confirmarEntrada() {
         })
     });
 
-    document.getElementById('entradaModal').style.display = 'none';
-    cargarMateriales();
-    showToast("✅ Entrada Registrada");
+    if (res.ok) {
+        document.getElementById('entradaModal').style.display = 'none';
+        cargarMateriales();
+        showToast("✅ Entrada Registrada");
+    } else {
+        showToast("⚠️ Error de Permisos o Servidor");
+    }
 }
 
-// --- 7. AJUSTE MANUAL Y ADMIN ---
+// --- 7. AJUSTE MANUAL Y ADMIN (MODIFICADOS) ---
 function editarStockManual(id) {
     if (usuarioRol !== "ADMIN") return;
     idEnEdicion = id;
@@ -416,12 +393,16 @@ async function guardarStockModal() {
     const nuevo = parseInt(document.getElementById('stockInputModal').value);
     const stockSpan = document.getElementById(`stock-qty-${idEnEdicion}`);
     const actual = parseInt(stockSpan ? stockSpan.innerText : 0);
-
     const diff = nuevo - actual;
     if (diff === 0) return document.getElementById('stockModal').style.display = 'none';
 
+    // 🔒 FETCH CON SEGURIDAD
     await fetch(`${API_URL}/movimientos/`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-usuario': usuarioActual
+        },
         body: JSON.stringify({ material_id: idEnEdicion, cantidad: Math.abs(diff), tipo: diff > 0 ? "ENTRADA" : "SALIDA", motivo: "Ajuste Manual Inventario", usuario: usuarioActual })
     });
     document.getElementById('stockModal').style.display = 'none';
@@ -434,25 +415,73 @@ async function abrirAdminPanel() {
 }
 
 async function cargarDispositivos() {
-    const res = await fetch(`${API_URL}/admin/dispositivos`);
-    const devs = await res.json();
-    const tbody = document.getElementById('tablaDispositivos');
-    tbody.innerHTML = '';
-    devs.forEach(d => {
-        tbody.innerHTML += `<tr><td style="padding:10px; color:white;">${d.nombre}</td><td style="color:#888;">${d.rol}</td><td style="color:white; font-family:monospace;">${d.codigo_acceso}</td><td><span onclick="borrarDispositivo(${d.id})" style="cursor:pointer; color:#CF6679;">🗑️</span></td></tr>`;
-    });
+    const grid = document.getElementById('gridDispositivos');
+    if (!grid) return; // Seguridad por si no cargó el HTML aún
+
+    grid.innerHTML = '<div style="color:#888;">Cargando accesos...</div>';
+
+    try {
+        const res = await fetch(`${API_URL}/admin/dispositivos`);
+        const devs = await res.json();
+
+        grid.innerHTML = ''; // Limpiar
+
+        devs.forEach(d => {
+            // Definir ícono y color según el rol
+            let icon = "📱";
+            let roleClass = "role-taller";
+            if (d.rol === "ADMIN") { icon = "🛡️"; roleClass = "role-admin"; }
+            if (d.rol === "EXHIBICION") { icon = "🏪"; roleClass = "role-exhibicion"; }
+
+            // Crear la tarjeta HTML
+            const card = `
+                <div class="device-card">
+                    <button class="btn-delete-card" onclick="borrarDispositivo(${d.id})" title="Eliminar Acceso">🗑️</button>
+                    
+                    <div class="dev-avatar">${icon}</div>
+                    <div class="dev-name">${d.nombre}</div>
+                    <div class="dev-role ${roleClass}">${d.rol}</div>
+                    
+                    <div style="font-size:0.8em; color:#666; margin-bottom:5px;">PIN DE ACCESO</div>
+                    <div class="dev-pin">${d.codigo_acceso}</div>
+                </div>
+            `;
+            grid.innerHTML += card;
+        });
+    } catch (e) {
+        console.error("Error al cargar dispositivos", e);
+        grid.innerHTML = '<div style="color:#FF6B6B;">Error de conexión</div>';
+    }
 }
 
 async function crearDispositivo() {
     const nombre = document.getElementById('newDevNombre').value;
     const rol = document.getElementById('newDevRol').value;
     if (!nombre) return showToast("Escribe un nombre");
-    await fetch(`${API_URL}/admin/generar-dispositivo`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre, rol }) });
+
+    // 🔒 FETCH CON SEGURIDAD
+    await fetch(`${API_URL}/admin/generar-dispositivo`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-usuario': usuarioActual
+        },
+        body: JSON.stringify({ nombre, rol })
+    });
     cargarDispositivos();
 }
 
 async function borrarDispositivo(id) {
-    if (confirm("¿Eliminar acceso?")) { await fetch(`${API_URL}/admin/dispositivos/${id}`, { method: 'DELETE' }); cargarDispositivos(); }
+    if (confirm("¿Eliminar acceso?")) {
+        // 🔒 FETCH CON SEGURIDAD
+        await fetch(`${API_URL}/admin/dispositivos/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'x-usuario': usuarioActual
+            }
+        });
+        cargarDispositivos();
+    }
 }
 
 // --- 8. UTILIDADES ---
@@ -472,17 +501,13 @@ function filtrarTabla() { cargarMateriales(); }
 // --- 9. GRÁFICAS Y FINANZAS ---
 let chartCat = null;
 let chartTop = null;
-
 function actualizarFinanzasAdmin(materiales) {
     if (usuarioRol !== "ADMIN") return;
-
     document.getElementById('kpiDineroCard').style.display = 'block';
     const chartContainer = document.getElementById('adminCharts');
     chartContainer.style.display = 'flex';
-
     let valorTotal = 0;
     const valorPorCategoria = {};
-
     materiales.forEach(m => {
         const costo = m.costo_unitario || 0;
         const valorMaterial = m.cantidad * costo;
@@ -490,10 +515,8 @@ function actualizarFinanzasAdmin(materiales) {
         if (!valorPorCategoria[m.categoria]) valorPorCategoria[m.categoria] = 0;
         valorPorCategoria[m.categoria] += valorMaterial;
     });
-
     const formatter = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
     document.getElementById('kpiValorTotal').innerText = formatter.format(valorTotal);
-
     renderizarGraficas(valorPorCategoria, materiales);
 }
 
@@ -501,9 +524,7 @@ function renderizarGraficas(datosCategoria, todosMateriales) {
     const ctxCat = document.getElementById('chartCategorias').getContext('2d');
     const labelsCat = Object.keys(datosCategoria);
     const dataCat = Object.values(datosCategoria);
-
     if (chartCat) chartCat.destroy();
-
     chartCat = new Chart(ctxCat, {
         type: 'doughnut',
         data: {
@@ -517,20 +538,15 @@ function renderizarGraficas(datosCategoria, todosMateriales) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right', labels: { color: 'white' } }
-            }
+            plugins: { legend: { position: 'right', labels: { color: 'white' } } }
         }
     });
-
     const top5 = todosMateriales
         .map(m => ({ nombre: m.nombre, valor: m.cantidad * (m.costo_unitario || 0) }))
         .sort((a, b) => b.valor - a.valor)
         .slice(0, 5);
-
     const ctxTop = document.getElementById('chartTopMateriales').getContext('2d');
     if (chartTop) chartTop.destroy();
-
     chartTop = new Chart(ctxTop, {
         type: 'bar',
         data: {
@@ -565,7 +581,17 @@ document.getElementById('materialForm').addEventListener('submit', async (e) => 
         min_stock: parseInt(document.getElementById('newMinStock').value),
         ubicacion: document.getElementById('newUbicacion').value
     };
-    await fetch(`${API_URL}/materiales/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+
+    // 🔒 FETCH CON SEGURIDAD
+    await fetch(`${API_URL}/materiales/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-usuario': usuarioActual
+        },
+        body: JSON.stringify(data)
+    });
+
     document.getElementById('addModal').style.display = 'none';
     cargarMateriales(); showToast("Material Creado");
 });

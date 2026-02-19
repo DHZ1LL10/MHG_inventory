@@ -9,6 +9,9 @@
     <style>
         body {
             background-color: #f9d3d3;
+            /* Color de fondo original */
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            /* Fondo Dark Mode moderno */
             color: white;
             font-family: 'Segoe UI', sans-serif;
             display: flex;
@@ -24,7 +27,7 @@
             border-radius: 20px;
             text-align: center;
             border: 1px solid #333;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
             width: 320px;
         }
 
@@ -59,10 +62,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        .pin-dot {
-            color: white;
+            transition: border-color 0.3s;
         }
 
         .pin-placeholder {
@@ -88,6 +88,8 @@
             cursor: pointer;
             transition: 0.1s;
             font-weight: bold;
+            user-select: none;
+            /* Evita que se seleccione el texto al picar rápido */
         }
 
         .num-btn:active {
@@ -119,6 +121,31 @@
             min-height: 20px;
             font-size: 0.9em;
             display: none;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        /* Enlace de Configuración */
+        .config-link {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+
+        .config-link a {
+            color: #555;
+            text-decoration: none;
+            font-size: 0.8em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.3s;
+        }
+
+        .config-link a:hover {
+            color: #888;
         }
     </style>
 </head>
@@ -129,11 +156,11 @@
         <h1>MHG <span>ACCESO</span></h1>
         <p>Ingresa tu código de personal</p>
 
+        <div class="error-msg" id="errorMsg">Código incorrecto</div>
+
         <div class="pin-display" id="display">
             <span class="pin-placeholder">TAP PARA INICIAR</span>
         </div>
-
-        <div class="error-msg" id="errorMsg">Código incorrecto</div>
 
         <div class="numpad">
             <button class="num-btn" onclick="addNum(1)">1</button>
@@ -145,36 +172,56 @@
             <button class="num-btn" onclick="addNum(7)">7</button>
             <button class="num-btn" onclick="addNum(8)">8</button>
             <button class="num-btn" onclick="addNum(9)">9</button>
+
             <button class="num-btn btn-clear" onclick="clearPin()">C</button>
             <button class="num-btn" onclick="addNum(0)">0</button>
             <button class="num-btn" onclick="backspace()">⌫</button>
 
             <button class="num-btn btn-enter" onclick="login()">ENTRAR ➜</button>
         </div>
+
+        <div class="config-link">
+            <a href="config.html">
+                ⚙️ Configurar Servidor
+            </a>
+        </div>
     </div>
 
     <script src="js/config.js"></script>
-    <script>
-        // Usa CONFIG si está disponible, sino fallback
 
-        const API_URL = "http://localhost:8000";
+    <script>
+        // ✅ USA LA CONFIGURACIÓN DINÁMICA
+        // Si config.js cargó bien, CONFIG.API_BASE_URL tendrá la IP guardada o localhost
+        const API_URL = (typeof CONFIG !== 'undefined' && CONFIG.API_BASE_URL)
+            ? CONFIG.API_BASE_URL
+            : "http://localhost:8000";
+
+        console.log("🔌 Login conectando a:", API_URL);
+
         let pin = "";
 
         function updateDisplay() {
             const display = document.getElementById('display');
+            const errorMsg = document.getElementById('errorMsg');
+
             if (pin.length === 0) {
                 display.innerHTML = '<span class="pin-placeholder">_ _ _ _ _ _</span>';
+                display.style.borderColor = "#333";
             } else {
-                // Muestra puntos en lugar de números por seguridad
+                // Muestra puntos grandes
                 display.innerHTML = '•'.repeat(pin.length);
+                display.style.borderColor = "#BB86FC"; // Color de acento al escribir
             }
-            document.getElementById('errorMsg').style.display = 'none';
+            // Ocultar error al escribir
+            errorMsg.style.display = 'none';
         }
 
         function addNum(num) {
             if (pin.length < 6) {
                 pin += num;
                 updateDisplay();
+                // Efecto de vibración leve en móviles
+                if (navigator.vibrate) navigator.vibrate(50);
             }
         }
 
@@ -188,8 +235,27 @@
             updateDisplay();
         }
 
+        function showError(msg) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.style.display = 'block';
+            errorDiv.innerText = msg;
+
+            const display = document.getElementById('display');
+            display.style.borderColor = "#FF6B6B"; // Rojo error
+            display.classList.add('shake'); // Podríamos agregar animación CSS shake
+
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]); // Vibrar error
+            setTimeout(clearPin, 800);
+        }
+
         async function login() {
             if (pin.length < 4) return;
+
+            // Feedback visual de carga
+            const btnEnter = document.querySelector('.btn-enter');
+            const textoOriginal = btnEnter.innerText;
+            btnEnter.innerText = "VERIFICANDO...";
+            btnEnter.style.backgroundColor = "#444";
 
             try {
                 const response = await fetch(`${API_URL}/login`, {
@@ -200,6 +266,7 @@
 
                 if (response.ok) {
                     const data = await response.json();
+
                     // GUARDAMOS LA SESIÓN
                     localStorage.setItem("usuarioNombre", data.nombre);
                     localStorage.setItem("usuarioRol", data.rol);
@@ -207,20 +274,19 @@
                     // Redirigir al Dashboard
                     window.location.href = "dashboard.html";
                 } else {
-                    const err = await response.json();
-                    document.getElementById('errorMsg').style.display = 'block';
-                    document.getElementById('errorMsg').innerText = "Código Incorrecto";
-                    if (navigator.vibrate) navigator.vibrate(200); // Vibrar si es tablet
-                    setTimeout(clearPin, 500);
+                    showError("Código Incorrecto");
                 }
             } catch (e) {
                 console.error("Error de conexión:", e);
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('errorMsg').innerText = "Error de conexión";
+                showError("Error: No conecta al Servidor");
+            } finally {
+                // Restaurar botón
+                btnEnter.innerText = textoOriginal;
+                btnEnter.style.backgroundColor = "#00C853";
             }
         }
 
-        // Soporte teclado físico por si acaso
+        // Soporte teclado físico
         document.addEventListener('keydown', (e) => {
             if (e.key >= '0' && e.key <= '9') addNum(e.key);
             if (e.key === 'Backspace') backspace();

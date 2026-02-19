@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import models, schemas, database
 import random, string
+from datetime import datetime
 
 models.Base.metadata.create_all(bind=database.engine)
 
@@ -10,13 +11,12 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    # ⚠️ En producción, cambia "*" por la IP real del frontend si es posible
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
-
 
 def get_db():
     db = database.SessionLocal()
@@ -25,21 +25,38 @@ def get_db():
     finally:
         db.close()
 
+# 🛡️ CADENERO DE SEGURIDAD (VOLVIMOS A AGREGARLO)
+# Verifica que la petición venga de un usuario logueado en el Frontend
+def verificar_seguridad(x_usuario: str = Header(None)):
+    if not x_usuario or x_usuario == "null" or x_usuario == "undefined":
+        raise HTTPException(status_code=401, detail="⚠️ Acceso Denegado: Usuario no identificado")
+    return x_usuario
+
 # --- MATERIALES ---
 @app.get("/materiales/", response_model=list[schemas.Material])
 def leer_materiales(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(models.Material).offset(skip).limit(limit).all()
 
+# 🔒 PROTEGIDO
 @app.post("/materiales/", response_model=schemas.Material)
-def crear_material(material: schemas.MaterialCreate, db: Session = Depends(get_db)):
+def crear_material(
+    material: schemas.MaterialCreate, 
+    db: Session = Depends(get_db),
+    usuario_id: str = Depends(verificar_seguridad) # <--- Candado puesto
+):
     db_material = models.Material(**material.dict())
     db.add(db_material)
     db.commit()
     db.refresh(db_material)
     return db_material
 
+# 🔒 PROTEGIDO
 @app.delete("/materiales/{material_id}")
-def eliminar_material(material_id: int, db: Session = Depends(get_db)):
+def eliminar_material(
+    material_id: int, 
+    db: Session = Depends(get_db),
+    usuario_id: str = Depends(verificar_seguridad) # <--- Candado puesto
+):
     db_material = db.query(models.Material).filter(models.Material.id == material_id).first()
     if not db_material: raise HTTPException(status_code=404, detail="No encontrado")
     db.delete(db_material)
@@ -51,34 +68,40 @@ def eliminar_material(material_id: int, db: Session = Depends(get_db)):
 def leer_obras(db: Session = Depends(get_db)):
     return db.query(models.Obra).all()
 
+# 🔒 PROTEGIDO
 @app.post("/obras/", response_model=schemas.Obra)
-def crear_obra(obra: schemas.ObraCreate, db: Session = Depends(get_db)):
+def crear_obra(
+    obra: schemas.ObraCreate, 
+    db: Session = Depends(get_db),
+    usuario_id: str = Depends(verificar_seguridad)
+):
     db_obra = models.Obra(**obra.dict())
     db.add(db_obra)
     db.commit()
     db.refresh(db_obra)
     return db_obra
 
-from datetime import datetime # <--- Asegúrate de tener este import arriba
-
 # --- MOVIMIENTOS (CON LÓGICA FINANCIERA) ---
+# 🔒 PROTEGIDO
 @app.post("/movimientos/", response_model=schemas.Movimiento)
-def registrar_movimiento(mov: schemas.MovimientoCreate, db: Session = Depends(get_db)):
+def registrar_movimiento(
+    mov: schemas.MovimientoCreate, 
+    db: Session = Depends(get_db),
+    usuario_id: str = Depends(verificar_seguridad)
+):
     # 1. Buscar el material
     material = db.query(models.Material).filter(models.Material.id == mov.material_id).first()
     if not material:
         raise HTTPException(status_code=404, detail="Material no encontrado")
     
     # 2. Calcular VALOR MONETARIO ($)
-    # Multiplicamos la cantidad por lo que nos costó el material
     valor_calculado = float(mov.cantidad) * material.costo_unitario
 
     # 3. Lógica de Inventario
     if mov.tipo == "ENTRADA":
         material.cantidad += mov.cantidad
-        material.ultimo_abastecimiento = datetime.utcnow() # Actualizamos fecha de última compra
+        material.ultimo_abastecimiento = datetime.utcnow()
     elif mov.tipo == "SALIDA":
-        # Validación de seguridad: No dejar sacar más de lo que hay
         if material.cantidad < mov.cantidad:
             raise HTTPException(status_code=400, detail=f"Stock insuficiente. Solo tienes {material.cantidad} disponibles.")
         material.cantidad -= mov.cantidad
@@ -90,7 +113,7 @@ def registrar_movimiento(mov: schemas.MovimientoCreate, db: Session = Depends(ge
         tipo=mov.tipo,
         motivo=mov.motivo,
         usuario=mov.usuario,
-        valor_monetario=valor_calculado # <--- Guardamos el dinero que representa este movimiento
+        valor_monetario=valor_calculado
     )
 
     db.add(db_mov)
@@ -100,8 +123,8 @@ def registrar_movimiento(mov: schemas.MovimientoCreate, db: Session = Depends(ge
 
 @app.get("/movimientos/", response_model=list[schemas.Movimiento])
 def leer_movimientos(limit: int = 20, db: Session = Depends(get_db)):
-    # Traemos los últimos 20 movimientos, ordenados del más reciente al más antiguo
     return db.query(models.Movimiento).order_by(models.Movimiento.fecha.desc()).limit(limit).all()
+
 # --- DISPOSITIVOS (LOGIN & GESTIÓN) ---
 @app.post("/login")
 def login(login: schemas.LoginRequest, db: Session = Depends(get_db)):
@@ -114,8 +137,13 @@ def login(login: schemas.LoginRequest, db: Session = Depends(get_db)):
 def listar_dispositivos(db: Session = Depends(get_db)):
     return db.query(models.Dispositivo).all()
 
+# 🔒 PROTEGIDO
 @app.post("/admin/generar-dispositivo", response_model=schemas.Dispositivo)
-def crear_dispositivo(disp: schemas.DispositivoCreate, db: Session = Depends(get_db)):
+def crear_dispositivo(
+    disp: schemas.DispositivoCreate, 
+    db: Session = Depends(get_db),
+    usuario_id: str = Depends(verificar_seguridad)
+):
     chars = string.digits
     codigo = ''.join(random.choice(chars) for _ in range(6))
     nuevo = models.Dispositivo(nombre=disp.nombre, rol=disp.rol, codigo_acceso=codigo)
@@ -124,8 +152,13 @@ def crear_dispositivo(disp: schemas.DispositivoCreate, db: Session = Depends(get
     db.refresh(nuevo)
     return nuevo
 
+# 🔒 PROTEGIDO
 @app.delete("/admin/dispositivos/{id}")
-def borrar_dispositivo(id: int, db: Session = Depends(get_db)):
+def borrar_dispositivo(
+    id: int, 
+    db: Session = Depends(get_db),
+    usuario_id: str = Depends(verificar_seguridad)
+):
     dev = db.query(models.Dispositivo).filter(models.Dispositivo.id == id).first()
     if not dev: raise HTTPException(status_code=404, detail="No encontrado")
     db.delete(dev)
